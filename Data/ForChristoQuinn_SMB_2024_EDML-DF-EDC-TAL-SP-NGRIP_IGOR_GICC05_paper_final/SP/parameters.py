@@ -1,0 +1,31 @@
+#Parameters specific to the DF ice core
+#TODO: check this file with the Parrenin et al. (CP, 2007) parameters
+self.dim=1
+self.calc_a=False
+self.calc_tau=False
+self.calc_LID=False
+self.calc_a_method='fullcorr'
+self.age_top=-50
+self.udepth_top=0.
+self.depth=np.arange(0., 3032.01, 1)
+self.gamma_source=3.2 
+self.beta_source=1.6  
+self.A0=0.032
+self.lambda_a=4000
+self.beta=0.010
+self.thickness=3032.
+self.pprime=1.19
+self.s=0.
+self.muprime=m.log(0.0013/self.A0)
+self.k=0.3
+self.lambda_tau=70
+self.lambda_LID=4000
+self.age_max=1000000.
+self.corr_a_age=np.arange(0., 800000., 10000.)
+self.sigmap_corr_a=0.2*np.ones_like(self.corr_a_age)
+self.corr_LID_age=np.arange(0., 800000., 10000.)
+self.sigmap_corr_lid=0.4*np.ones_like(self.corr_LID_age)
+self.lid_value=98.
+self.corr_tau_depth=np.arange(0., 3032.01, 3032./100)
+self.restart=False
+self.accu_prior_rep='staircase'    #linear or staircase. Define whether the prior accu representation is linear or staircase in-between the data points.
