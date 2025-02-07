@@ -1,6 +1,6 @@
-% WAIS Divide lock-in depth from firn densification model calibrated to fit d15N data
-% See Buizert et al. 2015 for details. File generated 8/19/2015
-Depth(m) LID(m)
+# WAIS Divide lock-in depth from firn densification model calibrated to fit d15N data
+# See Buizert et al. 2015 for details. File generated 8/19/2015
+#Depth(m) LID(m)
 0.7670	NaN
 5.1353	NaN
 9.2931	NaN

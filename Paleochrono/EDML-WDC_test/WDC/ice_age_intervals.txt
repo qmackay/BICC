@@ -1,4 +1,4 @@
-top depth (m)	bottom depth (m)	duration (yr)	sigma duration (yr)
+#top depth (m)	bottom depth (m)	duration (yr)	sigma duration (yr)
 0.36	34.487	100	1.0
 34.487	61.536	100	0.0
 61.536	85.494	100	0.0

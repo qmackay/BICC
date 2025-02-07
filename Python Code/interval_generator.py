@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # Load the WD_AgeDepth file
-agedepth_file = "E:\GitHub\BICC\Paleochrono\EDML-WDC_test\WDC\WD_AgeDepth.txt"
+agedepth_file = "E:/GitHub/BICC/Paleochrono/EDML-WDC_test/raw data/WDC/WD_AgeDepth.txt"
 df = pd.read_csv(agedepth_file, delimiter="\t", comment="#", names=["depth", "age", "sigma"])
 
 # Define year intervals
@@ -19,13 +19,13 @@ sigma_end = np.interp(intervals+99, df["age"], df["sigma"])
 sigma_diff = sigma_end - sigma_start
 
 interval_df = pd.DataFrame({
-    "top depth (m)": depths[:-1],
+    "#top depth (m)": depths[:-1],
     "bottom depth (m)": depths[1:],
     "duration (yr)": 100,
     "sigma duration (yr)": sigma_diff[:-1] #how should I calculate this?
 })
 
-output_file = "E:\GitHub\BICC\Paleochrono\EDML-WDC_test\WDC\ice_age_intervals.txt"
+output_file = "E:/GitHub/BICC/Paleochrono/EDML-WDC_test/WDC/ice_age_intervals.txt"
 interval_df.to_csv(output_file, sep="\t", index=False)
 
 print(f"Done! Saved to: {output_file}")
