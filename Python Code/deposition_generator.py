@@ -15,7 +15,7 @@ print(df)
 interval_df = pd.DataFrame({
     "#depth": df["depth"],
     "accumulation (m ice equiv)": df["Accumulation"],
-    "error (supposed to be %)": 0.05
+    "error (%)": (df["2sigma_uncertainty"]/df["Accumulation"])
 })
 
 #remove rows with missing data

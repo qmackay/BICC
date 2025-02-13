@@ -15,7 +15,7 @@ print(df)
 interval_df = pd.DataFrame({
     "#depth": df["depth"],
     "thinning": df["thinning"],
-    'uncertainty (%)': df["uncertainty"]
+    'uncertainty (%)': (df["uncertainty"]/df["thinning"]) #need to check what original error unit is
 })
 
 interval_df.dropna(inplace=True)
