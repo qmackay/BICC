@@ -1,0 +1,83 @@
+  Started on:            youmu
+  Started at:            Wed Feb 5 07:54:31 PM PST 2025
+Experiment directory is:  AICC2023_noHulu/
+Initialization of site EDC
+Initialization of site VK
+Initialization of site TALDICE
+Initialization of site EDML
+Initialization of site NGRIP
+Initialization of site pair EDC-VK
+Initialization of site pair EDC-TALDICE
+Initialization of site pair VK-TALDICE
+Initialization of site pair EDC-EDML
+Initialization of site pair VK-EDML
+Initialization of site pair TALDICE-EDML
+Initialization of site pair EDC-NGRIP
+Initialization of site pair VK-NGRIP
+Initialization of site pair TALDICE-NGRIP
+Initialization of site pair EDML-NGRIP
+Size of VARIABLES vector: 12944
+Size of RESIDUALS vector: 14167
+Initial cost function: 3557279.9509372166
+Optimization by: trf
+tr_solver: lsmr
+Jabobian: semi_adjoint
+   Iteration     Total nfev        Cost      Cost reduction    Step norm     Optimality   
+       0              1         3.5573e+06                                    1.89e+06    
+       1              2         1.5868e+05      3.40e+06       9.39e-01       1.23e+05    
+       2              3         1.9106e+04      1.40e+05       1.00e+00       2.70e+04    
+       3              4         2.8220e+03      1.63e+04       2.00e+00       1.25e+04    
+       4              5         1.3747e+03      1.45e+03       3.32e+00       2.38e+04    
+       5              6         3.5487e+02      1.02e+03       1.02e+00       1.01e+03    
+       6              7         2.6843e+02      8.64e+01       4.00e+00       1.95e+03    
+       7              8         2.5216e+02      1.63e+01       5.65e+00       2.48e+03    
+       8              9         2.1319e+02      3.90e+01       2.34e+00       2.99e+02    
+       9             10         1.9929e+02      1.39e+01       1.09e+00       1.11e+01    
+      10             12         1.9881e+02      4.80e-01       4.09e-01       6.32e+00    
+      11             13         1.9861e+02      2.01e-01       4.09e-01       6.36e+00    
+      12             14         1.9857e+02      3.46e-02       1.58e-01       1.26e+00    
+      13             15         1.9855e+02      2.14e-02       5.45e-02       4.47e-01    
+      14             16         1.9855e+02      3.69e-03       1.63e-02       1.42e+00    
+      15             17         1.9854e+02      2.38e-03       1.19e-02       4.34e-01    
+      16             18         1.9854e+02      1.66e-03       7.44e-03       1.00e+00    
+`ftol` termination condition is satisfied.
+Function evaluations 18, initial cost 3.5573e+06, final cost 1.9854e+02, first-order optimality 1.00e+00.
+Optimized cost function: 198.542195580795
+Optimization execution time: 33.237425630912185 seconds
+Calculating Jacobian matrix.
+Calculating Hessian matrix.
+Factorisation of the Hessian matrix
+Calculation of confidence intervals
+Covariance matrix for EDC
+Covariance matrix for VK
+Covariance matrix for TALDICE
+Covariance matrix for EDML
+Covariance matrix for NGRIP
+Confidence intervals for EDC
+Confidence intervals for VK
+Confidence intervals for TALDICE
+Confidence intervals for EDML
+Confidence intervals for NGRIP
+Figures, outliers detection and saving
+Figures, outliers detection and saving of EDC
+Figures, outliers detection and saving of VK
+Figures, outliers detection and saving of TALDICE
+Figures, outliers detection and saving of EDML
+Figures, outliers detection and saving of NGRIP
+Display of EDC-VK site pair
+Outlier in airair_ synchro at index: 0
+Display of EDC-TALDICE site pair
+Display of VK-TALDICE site pair
+Display of EDC-EDML site pair
+Display of VK-EDML site pair
+Display of TALDICE-EDML site pair
+Display of EDC-NGRIP site pair
+Display of VK-NGRIP site pair
+Display of TALDICE-NGRIP site pair
+Display of EDML-NGRIP site pair
+Checking for air age inversion
+WARNING: air age inversion for EDC
+WARNING: air age inversion for VK
+Program execution time: 347.4439697319176 seconds
+Max memory usage: 4079872 kbytes
+  Finished at:            Wed Feb 5 08:00:38 PM PST 2025
