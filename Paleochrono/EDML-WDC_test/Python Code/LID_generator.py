@@ -12,7 +12,7 @@ elif os.name == 'posix':
 
 df = pd.read_csv(read_file, delimiter="\t", comment="#", names=["depth", "LID"])
 
-stdev = 0.04 # 4% uncertainty
+stdev = 0.10 # 10% uncertainty
 
 interval_df = pd.DataFrame({
     "#depth": df["depth"],
