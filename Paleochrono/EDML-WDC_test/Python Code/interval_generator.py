@@ -32,7 +32,7 @@ interval_df = pd.DataFrame({
     "#top depth (m)": depths[:-1],
     "bottom depth (m)": depths[1:],
     "duration (yr)": 100,
-    "sigma duration (yr)": sigma_diff[:-1] #how should I calculate this?
+    "sigma duration (yr)": sigma_diff[:-1]
 })
 
 interval_df.dropna(inplace=True)
