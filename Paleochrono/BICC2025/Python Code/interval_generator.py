@@ -15,7 +15,6 @@ min_age = df["age"].min()
 max_age = df["age"].max()
 intervals = np.arange(min_age, max_age, 100) #set year intervals, ignoring the end if less than 100 years
 
-# Interpolate depths for the defined age intervals. (this works because the original file doesn't skip depths, so doesn't need to interpolate)
 depths = np.interp(intervals, df["age"], df["depth"])
 
 sigma_start = np.interp(intervals, df["age"], df["sigma"])
