@@ -1323,7 +1323,7 @@ class Site(object):
         ax2.tick_params(axis='x', colors=pccfg.color_sigma)
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
-        ax2.legend(lines1 + lines2, labels1 + labels2, loc="best")
+        ax2.legend(lines1 + lines2, labels1 + labels2, loc="best") 
         mpl.savefig(pccfg.datadir+self.label+'/'+self.age_label_+'age.'+pccfg.fig_format,
                     format=pccfg.fig_format, bbox_inches='tight')
         if not pccfg.show_figures:

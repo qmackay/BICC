@@ -1,5 +1,4 @@
-# depth [m] ; age [yr] ; uncertainty [kyr]		
-		
+# depth [m] ; age [k yr] ; uncertainty [kyr]		
 0.05	11.16	1.116
 0.06	11.29	1.129
 0.07	11.42	1.142
