@@ -6,7 +6,7 @@ import os
 ### set params
 
 #get the vals to run
-os.chdir("E:\GitHub\BICC\Holcene Revision")
+os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/")
 start=577.172
 end=1299.883
 step=6
