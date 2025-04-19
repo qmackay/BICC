@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 import numpy as np
 import pandas as pd
 import os
@@ -6,7 +7,7 @@ import os
 #get the vals to run
 os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/")
 start=0
-end=576.800
+end=577.172
 step=6
 shallow_range = list(np.arange(start, end, step))
 if shallow_range[-1] < end:
@@ -38,6 +39,11 @@ for r in range(len(shallow_range)-1):
     early_dep_path = '/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WD Layer Counting Files/DRI_0_577m_032217.txt'
     early_read_dep = pd.read_csv(early_dep_path, delimiter="\t")
     early_read_dep['Cond(uS)']=early_read_dep['Cond(uS)'].mask(early_read_dep['Cond(uS)'] < 0)
+
+    #pull the volcanic layer data
+    volcanic_path='/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WDC_GICC21_Compare.tab'
+    read_volcanic = pd.read_csv(volcanic_path, delimiter="\t", comment="#") #take the vals
+    volcanic_wd_meters = read_volcanic["WDC(m)"]
 
     #create plot
 
@@ -116,6 +122,14 @@ for r in range(len(shallow_range)-1):
                 axes.axvspan(depth - 0.005, depth + 0.005, color='grey', alpha=0.5)
         axes.tick_params(axis='both', labelsize=12) # Set tick label size
 
+    #add black for volcanic links
+    for axes in ax: # all axes
+        i=0
+        for link in volcanic_wd_meters:
+            if xlow < link < xhigh:
+                axes.axvline(link, color='black', linestyle='--', linewidth=2)
+            i += 1
+
     age_in_bounds=[]
     s=0
     for depth in wd_layer_count["Depth ice/snow [m]"]:
@@ -140,6 +154,11 @@ for r in range(len(shallow_range)-1):
     # Set shared X axis
     ax[-1].set_xlim(xlow, xhigh)
     ax[-1].set_xlabel("Depth (m)")
+
+    for axes in ax: #add minor ticks
+        axes.minorticks_on()
+        axes.xaxis.set_minor_locator(MultipleLocator(0.1))  # Minor ticks every 0.1 on x-axis
+        axes.tick_params(axis='x', which='minor', length=4, color='gray')
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Shallow Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)

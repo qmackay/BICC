@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 import numpy as np
 import pandas as pd
 import os
@@ -8,7 +9,7 @@ import os
 #get the vals to run
 os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/")
 start=577.172
-end=1299.883
+end=853.172
 step=6
 brittle_range = list(np.arange(start, end, step))
 if brittle_range[-1] < end:
@@ -72,6 +73,11 @@ for r in range(len(brittle_range)-1):
         for val in read_uncertainty["May Not Be"].values #where its taking the vals
         if isinstance(val, str) or '-' in str(val) #if val is not None/NaN/must have a -
     ])
+
+    #take compare data to plot volcanic links
+    volcanic_path='/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WDC_GICC21_Compare.tab'
+    read_volcanic = pd.read_csv(volcanic_path, delimiter="\t", comment="#") #take the vals
+    volcanic_wd_meters = read_volcanic["WDC(m)"]
 
     #create plot
     from matplotlib.ticker import ScalarFormatter
@@ -144,6 +150,14 @@ for r in range(len(brittle_range)-1):
             i += 1
         axes.tick_params(axis='both', labelsize=12) # Set tick label size
 
+    #add black for volcanic links
+    for axes in ax: # all axes
+        i=0
+        for link in volcanic_wd_meters:
+            if xlow < link < xhigh:
+                axes.axvline(link, color='black', linestyle='--', linewidth=2)
+            i += 1
+
     #sets the left and right for the may not be shaded areas
     may_not_left=[]
     may_not_right=[]
@@ -179,6 +193,11 @@ for r in range(len(brittle_range)-1):
     # Set shared X axis
     ax[-1].set_xlim(xlow, xhigh)
     ax[-1].set_xlabel("Depth (m)")
+
+    for axes in ax: #add minor ticks
+        axes.minorticks_on()
+        axes.xaxis.set_minor_locator(MultipleLocator(0.1))  # Minor ticks every 0.1 on x-axis
+        axes.tick_params(axis='x', which='minor', length=4, color='gray')
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
