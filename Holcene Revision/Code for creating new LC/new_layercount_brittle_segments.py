@@ -25,8 +25,11 @@ for r in range(len(brittle_range)-1):
 
     #pull layer count #######
 
-    wd_layer_count = pd.read_csv('Updated_WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    wd_layer_count = pd.read_csv('Updated_WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)"])
     wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
+
+    old_wd_layer_count = pd.read_csv('WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    old_wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
 
     #pull the DEP data files for the brittle ice #######
 
@@ -133,9 +136,19 @@ for r in range(len(brittle_range)-1):
         age_in_bounds=[]
         for depth in wd_layer_count["Depth ice/snow [m]"]:
             if xlow < depth < xhigh:
-                age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][i])
-                axes.axvspan(depth - 0.005, depth + 0.005, color='grey', alpha=0.5)
+                if not np.any(np.isclose(old_wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)): #if it is not present in the old layer count, it is a new layer
+                    age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][i])
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='green', alpha=0.5)
+                elif np.any(np.isclose(old_wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)):  #if it is  present in the old layer count, it is a old layer
+                    age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][i])
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='gray', alpha=0.5)
             i += 1
+
+        for depth in old_wd_layer_count["Depth ice/snow [m]"]: #this code should create lines for the layers that were removed
+            if xlow < depth < xhigh:
+                if not np.any(np.isclose(wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)):
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='red', alpha=0.5)
+                    
         axes.tick_params(axis='both', labelsize=12) # Set tick label size
 
     #add black for volcanic links
@@ -156,6 +169,12 @@ for r in range(len(brittle_range)-1):
 
     #add triangles
     triangle_positions = wd_layer_count["Depth ice/snow [m]"]
+
+    # add missing depths from old_wd_layer_count
+    missing_depths = old_wd_layer_count["Depth ice/snow [m]"][~old_wd_layer_count["Depth ice/snow [m]"].isin(wd_layer_count["Depth ice/snow [m]"])]
+    triangle_positions = pd.concat([triangle_positions, missing_depths], ignore_index=True)
+
+
     triangle_positions = triangle_positions[(triangle_positions > xlow) & (triangle_positions < xhigh)]
     # Y position slightly above the top plot's y-limits
     y_top = ax[0].get_ylim()[1] + 0.03  # Adjust as needed

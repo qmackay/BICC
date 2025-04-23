@@ -6,7 +6,7 @@ import re
 #set data paths
 os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision")
 links_path = "GRIP_WDC_TephraLinks.xlsx"
-WD2014_path = "0421_Updated_WD2014 Layer Count.tab"
+WD2014_path = "Updated_WD2014 Layer Count.tab"
 GICC_GRIP_age = "GICC05-GICC21 Conversion.xlsx"
 
 #import data

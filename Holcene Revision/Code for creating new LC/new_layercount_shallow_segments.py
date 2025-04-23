@@ -23,8 +23,11 @@ for r in range(len(shallow_range)-1):
 
     #pull layer count #######
 
-    wd_layer_count = pd.read_csv('WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    wd_layer_count = pd.read_csv('Updated_WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)"])
     wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
+
+    old_wd_layer_count = pd.read_csv('WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    old_wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
 
     #pull the ion data #######
 
@@ -117,9 +120,23 @@ for r in range(len(shallow_range)-1):
 
     #set solid lines for layers
     for axes in ax: # all axes
+        i=0
+        age_in_bounds=[]
         for depth in wd_layer_count["Depth ice/snow [m]"]:
             if xlow < depth < xhigh:
-                axes.axvspan(depth - 0.005, depth + 0.005, color='grey', alpha=0.5)
+                if not np.any(np.isclose(old_wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)): #if it is not present in the old layer count, it is a new layer
+                    age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][i])
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='green', alpha=0.5)
+                elif np.any(np.isclose(old_wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)):  #if it is  present in the old layer count, it is a old layer
+                    age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][i])
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='gray', alpha=0.5)
+            i += 1
+
+        for depth in old_wd_layer_count["Depth ice/snow [m]"]: #this code should create lines for the layers that were removed
+            if xlow < depth < xhigh:
+                if not np.any(np.isclose(wd_layer_count["Depth ice/snow [m]"].values, depth, atol=1e-3)):
+                    axes.axvspan(depth - 0.005, depth + 0.005, color='red', alpha=0.5)
+        
         axes.tick_params(axis='both', labelsize=12) # Set tick label size
 
     #add black for volcanic links
@@ -129,13 +146,6 @@ for r in range(len(shallow_range)-1):
             if xlow < link < xhigh:
                 axes.axvline(link, color='black', linestyle='--', linewidth=2)
             i += 1
-
-    age_in_bounds=[]
-    s=0
-    for depth in wd_layer_count["Depth ice/snow [m]"]:
-        if xlow < depth < xhigh:
-            age_in_bounds.append(wd_layer_count["Cal age [ka BP] (ice age)"][s])
-        s+=1
 
     for axes in ax[:-1]:  # All except the bottom plot
         axes.tick_params(labelbottom=False)        # Hide x-axis tick labels
@@ -147,6 +157,11 @@ for r in range(len(shallow_range)-1):
     #add triangles
     triangle_positions = wd_layer_count["Depth ice/snow [m]"]
     triangle_positions = triangle_positions[(triangle_positions > xlow) & (triangle_positions < xhigh)]
+
+    # add missing depths from old_wd_layer_count
+    missing_depths = old_wd_layer_count["Depth ice/snow [m]"][~old_wd_layer_count["Depth ice/snow [m]"].isin(wd_layer_count["Depth ice/snow [m]"])]
+    triangle_positions = pd.concat([triangle_positions, missing_depths], ignore_index=True)
+
     # Y position slightly above the top plot's y-limits
     y_top = ax[0].get_ylim()[1] + 0.03  # Adjust as needed
     ax[0].scatter(triangle_positions, [y_top]*len(triangle_positions), marker='v', color='grey', edgecolors='black', s=50, zorder=5, clip_on=False)
@@ -162,5 +177,5 @@ for r in range(len(shallow_range)-1):
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Shallow Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
-    plt.savefig(f"Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Code for creating new LC/Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
     plt.close()
