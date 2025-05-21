@@ -11,7 +11,7 @@ GICC_GRIP_age = "GICC05-GICC21 Conversion.xlsx"
 
 #import data
 links = pd.read_excel(links_path, usecols=[0,1,2,3,4,5,6,7,8], skiprows=29, names=["WDC(m)", "GRIP(m)", "WD2014 age (BC/AD iso)", "WD2014 age (yr BP)", "GICC05 age (yr BP)", "age diff", "GRIP dz/dt", "distance (yrs)", "type"])
-WD2014 = pd.read_csv(WD2014_path, comment="#", delimiter="\t")
+WD2014 = pd.read_csv(WD2014_path, comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)"])
 GICC_GRIP_age = pd.read_excel(GICC_GRIP_age, sheet_name=1, skiprows=1, names=["Age (b2k)", "dt years", "age (CE/BCE)", "EastGRIP (m)",	"NEEM (m)",	"NorthGRIP1 (m)",	"NorthGRIP2 (m)",	"NEEM-2011-S1 (m)",	"GRIP (m)",	"DYE-3 79 (m)",	"DYE-3 4B (m)",	"DYE-3 18C (m)"])
 
 GICC_GRIP_age["Age (b1950)"] = GICC_GRIP_age["Age (b2k)"] - 50 #make b1950 column
@@ -48,7 +48,7 @@ for i in range(0, len(WDC_GICC_compare)):
 
 WDC_GICC_compare["section error (yr)"] = section_error #calculate difference between ages
 
-output_path = "Modified_WDC_GICC_Compare.tab"
+output_path = "Modified_WDC_GICC_Compare.txt"
 WDC_GICC_compare.to_csv(output_path, sep="\t", index=False)
 
 print(f"File saved to: {output_path}")
