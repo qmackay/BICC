@@ -1,3 +1,0 @@
-#records from time-markers paper, doi:10.1016/j.quascirev.2007.11.009"			
-#depth (m)	age	unc
-5.42	130	3

@@ -1,0 +1,7 @@
+#MSD-MSL synchro horizons at DO8-13 onsets based on 18O records (Wang et al., 2001).
+262	43	100
+278	68	100
+289	93	100
+305	123	100
+348	196	100
+366	222	100

@@ -1,0 +1,17 @@
+#Parameters specific to the MSL speleothem
+archive: 'speleothem'
+age_top_prior: 35000. #age at the top of the sequence
+age_top_sigma: 2000. #Error on top age
+depth_grid: #depth grid for the age calculation
+    type: 'regular'
+    start: 6.
+    end: 450
+    resolution: 0.1
+age_truncation:
+    inf: 30000.
+    sup: 80000.
+deporate_prior_rep: 'linear'
+calc_deporate: True
+deporate0: 1.09e-2
+depth_unit: 'mm'
+age_label: ''

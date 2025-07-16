@@ -1,0 +1,12 @@
+#NGRIP-MSD synchro horizons at DO3-13 onsets based on 18O records (Wang et al., 2001, for Hulu and Table 1 of Svensson et al., CP, 2008 for NGRIP).
+1869.12 158	100
+1891.57	180	100
+1951.66	208	100
+1974.56	218	100
+2009.45	233	100
+2070.03	262	100
+2099.62	278	100
+2124.03	289	100
+2157.49	304	100
+2222.30	348	100
+2256.90	366	100

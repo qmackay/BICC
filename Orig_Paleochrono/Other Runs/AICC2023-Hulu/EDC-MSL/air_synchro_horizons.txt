@@ -1,0 +1,5 @@
+#EDC-MSL synchro horizons at DO8, 10-12 onsets based on 18O records (Wang et al., 2001, for Hulu and Loulergue et al., CP, 2007 for EDC).
+751.3	43	100
+790.6	93	100
+810.1	123	100
+848.1	196	100
