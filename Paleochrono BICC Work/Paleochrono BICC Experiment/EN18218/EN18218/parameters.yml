@@ -1,0 +1,21 @@
+#Parameters specific to the MSL speleothem
+archive: 'lake core'
+age_top_prior: 0. #age at the top of the sequence
+age_top_sigma: 1000. #Error on top age
+depth_grid: #depth grid for the age calculation
+    type: 'regular'
+    start: 0.
+    end: 650.
+    resolution: 0.5
+calc_deporate: True
+deporate0: 0.02
+corr_deporate_grid: #Age grid for the deporate correction function
+    type: 'regular' #regular or linear
+    start: 0
+    end:  30000
+    nb_steps: 1200 
+deporate_prior_sigma: 1.
+lambda_deporate: 500
+
+depth_unit: 'cm'
+age_label: ''

@@ -1,0 +1,2 @@
+# depth[m] ; air age[years] ; uncertainty[years]
+depth	age	age_unc	comment

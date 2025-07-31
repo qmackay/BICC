@@ -1,0 +1,6 @@
+density from freitag, extrapolated based off of EDC and WDC curves. 
+
+acc rate, thinning function, LID from AICC2012
+
+horizons/intervals will be from layer count, which was adjusted to ngrip 1 until age 730 then ngrip2 for rest from GICC21 (till 3244). Then, using GICC05 for rest.
+

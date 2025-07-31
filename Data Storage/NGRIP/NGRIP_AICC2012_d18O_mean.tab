@@ -1,0 +1,67 @@
+/* DATA DESCRIPTION:
+Citation:	Freitag, Johannes; Kipfstuhl, Sepp; Weißbach, Stefanie; Karlsson, Nanna Bjørnholt; Münch, Thomas; Hörhold, Maria (2021): Stable oxygen isotope profile of the NGRIP_2012 firn core, annual means [dataset]. PANGAEA, https://doi.org/10.1594/PANGAEA.931706, 
+	In: Freitag, J et al. (2021): Extension of the stable oxygen isotope and density profile of the NGRIP ice core [dataset bundled publication]. PANGAEA, https://doi.org/10.1594/PANGAEA.931746
+Abstract:	Stable oxygen isotopes (δ18O) were measured on discrete samples using Cavity Ring-Down spectroscopy with an L2120-i and L2130-i by Picarro Instruments. The δ18O concentration with depth is provided with a precision of better than 0.1 per mil. Using raw, un-calibrated dielectrical profiling (DEP) data from the field (NEEM Set-up), volcanic tie points were derived. Together with the smoothed density data and the isotopic composition the record was dated by layer counting. The annual mean values of δ18O were obtained based on this dating.
+Keyword(s):	density; firn core; North Greenland Traverse
+Project(s):	Glaciology @ AWI (AWI_Glac) (URI: https://www.awi.de/en/science/geosciences/glaciology.html)
+	North Greenland Eemian Ice Drilling (NEEM) (URI: https://neem.dk/)
+	Polar Terrestrial Environmental Systems @ AWI (AWI_Envi) (URI: https://www.awi.de/en/science/geosciences/polar-terrestrial-environmental-systems.html)
+Funding:	Agence Nationale de la Recherche (ANR) (URI: http://www.agence-nationale-recherche.fr/en/project-based-funding-to-advance-french-research/), grant/award no. 07-VULN-09-001: North Greenland Eemian Ice Drilling
+Coverage:	LATITUDE: 75.016666 * LONGITUDE: -42.533331
+	MINIMUM ELEVATION: 2917.0 m * MAXIMUM ELEVATION: 2917.0 m
+Event(s):	NGRIP_2012 * LATITUDE: 75.016666 * LONGITUDE: -42.533331 * ELEVATION: 2917.0 m * LOCATION: Greenland * CAMPAIGN: GL-Land_2012_NEEM12_NGT12 (URI: https://download.pangaea.de/reference/109684/attachments/Field_season_report_2012.pdf) * BASIS: AWI Arctic Land Expedition * METHOD/DEVICE: Firn corer (FIRNC) * COMMENT: NGRIP continuation, year 2012
+Parameter(s):	AGE [ka BP] (Age) * GEOCODE * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html)
+	Age [a AD/CE] (Age) * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html)
+	δ18O, water [‰ SMOW] (δ18O H2O) * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html) * METHOD/DEVICE: Calculated, annual mean
+License:	Creative Commons Attribution 4.0 International (CC-BY-4.0) (URI: https://creativecommons.org/licenses/by/4.0/)
+Status:	Curation Level: Enhanced curation (URI: https://wiki.pangaea.de/wiki/Curation_levels)
+Size:	94 data points
+*/
+Age [ka BP]	Age [a AD/CE]	δ18O H2O [‰ SMOW]
+-0.061	2011	-35.24
+-0.060	2010	-32.74
+-0.059	2009	-29.71
+-0.058	2008	-35.21
+-0.057	2007	-36.87
+-0.056	2006	-37.06
+-0.055	2005	-35.54
+-0.054	2004	-34.24
+-0.053	2003	-35.16
+-0.052	2002	-33.75
+-0.051	2001	-33.81
+-0.050	2000	-35.07
+-0.049	1999	-34.68
+-0.048	1998	-34.66
+-0.047	1997	-34.45
+-0.046	1996	-35.07
+-0.045	1995	-37.08
+-0.044	1994	-35.62
+-0.043	1993	-35.91
+-0.042	1992	-37.41
+-0.041	1991	-36.51
+-0.040	1990	-35.04
+-0.039	1989	-33.75
+-0.038	1988	-35.16
+-0.037	1987	-36.29
+-0.036	1986	-34.39
+-0.035	1985	-36.05
+-0.034	1984	-34.17
+-0.033	1983	-32.19
+-0.032	1982	-35.68
+-0.031	1981	-36.97
+-0.030	1980	-39.44
+-0.029	1979	-35.09
+-0.028	1978	-36.65
+-0.027	1977	-37.70
+-0.026	1976	-34.36
+-0.025	1975	-34.52
+-0.024	1974	-33.48
+-0.023	1973	-34.18
+-0.022	1972	-35.40
+-0.021	1971	-34.01
+-0.020	1970	-36.27
+-0.019	1969	-35.79
+-0.018	1968	-35.98
+-0.017	1967	-36.18
+-0.016	1966	-33.84
+-0.015	1965	-34.70
