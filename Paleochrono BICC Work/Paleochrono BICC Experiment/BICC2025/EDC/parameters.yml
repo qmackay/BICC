@@ -6,3 +6,4 @@ depth_grid: #depth grid for the age calculation
     start: 0.
     end: 3259.3
     resolution: 0.55
+fig_max_age_unc: 5000.
