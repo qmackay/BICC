@@ -1,0 +1,89 @@
+/* DATA DESCRIPTION:
+Citation:	Rasmussen, Sune Olander; Vinther, Bo Møllesøe; Freitag, Johannes; Kipfstuhl, Sepp (2023): Density of the EastGRIP S6 shallow core [dataset]. PANGAEA, https://doi.org/10.1594/PANGAEA.962756, 
+	In: Rasmussen, SO et al. (2023): EastGRIP snow-pack and ice-core densities (measured and modelled) [dataset bundled publication]. PANGAEA, https://doi.org/10.1594/PANGAEA.962754
+Abstract:	We here report measured densities from a combination of records from the EastGRIP ice-core site. The data come from a trench and two ice cores: the shallow EGRIP-S6 core and the deep main core of the project. Based on these data, we parametrize the density as a function of depth, allowing us to provide a standard transfer function between true depth and ice-equivalent depth which is consistent with the EGRIP density measurements. EGRIP density data are only available to 117 m depth, at which depth the density is about 900 kg/m^3 and the difference between true depth and ice-equivalent depth is about 22 m. The density and overburden profiles have been extended below this depth and all the way to 1200 m in order to provide a convenient, continuous and (mostly) smooth transfer function between true depth and ice-equivalent depth. See PDF file provided under 'Documentation' for full description of data and parametrization.
+Keyword(s):	density
+Documentation:	Rasmussen, Sune Olander; Vinther, Bo Møllesøe; Freitag, Johannes; Kipfstuhl, Sepp (2023): A standardized EGRIP density profile and transfer function between true depth and ice-equivalent depth. Centre for Ice and Climate, Section for the Physics of Ice, Climate and Earth, Niels Bohr Institute, University, https://download.pangaea.de/reference/121927/attachments/Notes_on_EGRIP_density_fitting.pdf
+Project(s):	East Greenland Ice-core Project (EGRIP) (URI: http://eastgrip.org)
+Coverage:	LATITUDE: 75.630000 * LONGITUDE: -36.000000
+	DATE/TIME START: 2018-06-12T00:00:00 * DATE/TIME END: 2018-06-27T00:00:00
+	MINIMUM DEPTH, ice/snow: 3.5 m * MAXIMUM DEPTH, ice/snow: 71.5 m
+Event(s):	EGRIP_S6 (EastGRIP S6 shallow ice core) * LATITUDE: 75.630000 * LONGITUDE: -36.000000 * DATE/TIME START: 2018-06-12T00:00:00 * DATE/TIME END: 2018-06-27T00:00:00 * ELEVATION: 2704.0 m * LOCATION: Greenland * METHOD/DEVICE: Ice drill (ICEDRILL) * COMMENT: Core drilled 1.2 km SSE of EastGRIP camp
+Comment:	Data from shallow core EGRIP-S6 (4" diameter). Averages for 1-meter resolution. Above 12 m depth, the firn core segments have a lot of scratches and thus, the value calculated by weighing the cores will underestimate the density. Therefore, we only use data from 12 meters and downwards for the fitting. Accuracy below 12 meters' depth: Precision of density measurements is estimated to about 1% or better: The main limiting factors are variations in core diameter (from the drilling) and small missing bits at breaks and around core catchers.
+Parameter(s):	DEPTH, ice/snow [m] (Depth ice/snow) * GEOCODE * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html) * COMMENT: Mean depth of 1-meter sections
+	Density, ice [kg/m**3] (Density ice) * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html)
+	Comment (Comment) * PI: Freitag, Johannes (https://orcid.org/0000-0003-2654-9440, Johannes.Freitag@awi.de, https://www.awi.de/en/about-us/organisation/staff/single-view/johannes-freitag.html)
+License:	Creative Commons Attribution 4.0 International (CC-BY-4.0) (URI: https://creativecommons.org/licenses/by/4.0/)
+Status:	Curation Level: Enhanced curation (URI: https://wiki.pangaea.de/wiki/Curation_levels) * Processing Level: PANGAEA data processing level 3 (URI: https://wiki.pangaea.de/wiki/Processing_levels#PANGAEA_data_processing_level_3)
+Size:	78 data points
+*/
+Depth ice/snow [m]	Density ice [kg/m**3]	Comment
+3.5	345.0	Not used for fit due to higher uncertainty
+4.5	379.0	Not used for fit due to higher uncertainty
+5.5	395.0	Not used for fit due to higher uncertainty
+6.5	387.0	Not used for fit due to higher uncertainty
+7.5	408.0	Not used for fit due to higher uncertainty
+8.5	439.0	Not used for fit due to higher uncertainty
+9.5	445.0	Not used for fit due to higher uncertainty
+10.5	409.0	Not used for fit due to higher uncertainty
+11.5	446.0	Not used for fit due to higher uncertainty
+12.5	478.9	
+13.5	499.2	
+14.5	508.3	
+15.5	523.1	
+16.5	541.0	
+17.5	551.2	
+18.5	546.6	
+19.5	572.4	
+20.5	567.6	
+21.5	574.2	
+22.5	590.5	
+23.5	599.0	
+24.5	601.7	
+25.5	611.1	
+26.5	623.0	
+27.5	633.2	
+28.5	649.5	
+29.5	650.1	
+30.5	653.6	
+31.5	662.6	
+32.5	670.1	
+33.5	676.6	
+34.5	676.2	
+35.5	687.4	
+36.5	697.4	
+37.5	698.6	
+38.5	702.7	
+39.5	714.2	
+40.5	710.3	
+41.5	723.7	
+42.5	724.2	
+43.5	733.5	
+44.5	736.2	
+45.5	741.9	
+46.5	748.0	
+47.5	753.5	
+48.5	766.8	
+49.5	771.6	
+50.5	774.0	
+51.5	773.1	
+52.5	778.7	
+53.5	781.7	
+54.5	785.7	
+55.5	798.4	
+56.5	806.0	
+57.5	806.7	
+58.5	815.0	
+59.5	818.7	
+60.5	819.4	
+61.5	823.6	
+62.5	827.8	
+63.5	831.0	
+64.5	830.1	
+65.5	838.6	
+66.5	841.9	
+67.5	846.5	
+68.5	856.8	
+69.5	857.1	
+70.5	861.3	
+71.5	862.2	
