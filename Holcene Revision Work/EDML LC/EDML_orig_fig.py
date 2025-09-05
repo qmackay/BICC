@@ -150,6 +150,6 @@ for r in range(len(edml_range)-1):
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
     plt.savefig(f"Original Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
-    print(f'{r/len(edml_range)}%')
+    print(f'{100*r/len(edml_range)}%')
     plt.close()
 
