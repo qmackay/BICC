@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+from pathlib import Path
 
 ### set params
+script_dir = Path(__file__).parent
+os.chdir(script_dir)
 
 #get the vals to run
-os.chdir('/Users/quinnmackay/Documents/GitHub/BICC/Data Storage/EDML')
 start=113
 end=280.289
 step=2
@@ -26,15 +28,15 @@ for r in range(len(edml_range)-1):
 
     #pull layer count #######
 
-    edml_layer_count = pd.read_excel('/Users/quinnmackay/Documents/GitHub/BICC/Data Storage/EDML/EDML Layer Count.xlsx', 
+    edml_layer_count = pd.read_excel('Data Files/EDML Layer Count.xlsx', 
                                      index_col=None, sheet_name=1, skiprows=2, header=None, usecols=[0,1,2,3], 
                                      names=["Depth(m)", "Count", "Year B2K", "MCE"])
     edml_layer_count["Year B1950"] = edml_layer_count["Year B2K"]-50
 
     #pull the lc data #######
 
-    lc_path1='EDML_CFA_113-1443.499m_1mm_resolution.txt'
-    lc_path2='EDML_CFA_1443.5-2774m_1mm_resolution.txt'
+    lc_path1='Data Files/EDML_CFA_113-1443.499m_1mm_resolution.txt'
+    lc_path2='Data Files/EDML_CFA_1443.5-2774m_1mm_resolution.txt'
 
     read_lc1 = pd.read_csv(lc_path1, header=None, skiprows=1, sep='\t', names=['Depth(m)', 'Na(ng/g)','NH4(ng/g)', 'Ca(ng/g)', 'Dust(particles/ml)', 'Cond(mikroS/cm)'])
     read_lc2 = pd.read_csv(lc_path2, header=None, skiprows=1, sep='\t', names=['Depth(m)', 'Na(ng/g)','NH4(ng/g)', 'Ca(ng/g)', 'Dust(particles/ml)', 'Cond(mikroS/cm)'])
@@ -42,7 +44,7 @@ for r in range(len(edml_range)-1):
     read_lc = pd.concat([read_lc1, read_lc2], ignore_index=True)
 
     #take compare data to plot volcanic links
-    volcanic_path='/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision Work/EDML LC/EDML-GICC Errors/EDML_GICC_Compare.xlsx'
+    volcanic_path='EDML-GICC Errors/EDML_GICC_Compare.xlsx'
     read_volcanic = pd.read_excel(volcanic_path) #take the vals
     volcanic_wd_meters = read_volcanic["EDML (m)"]
 
@@ -147,6 +149,6 @@ for r in range(len(edml_range)-1):
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
-    plt.savefig(f"/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision Work/EDML LC/Original Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Original Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
     plt.close()
 
