@@ -1,4 +1,4 @@
-density from freitag, extrapolated based off of EDC and WDC curves. 
+density from /Python Code/Crtitical/creating_ice_equiv_ngripdensity.ipynb, calculated via the EGRIP methodology. https://doi.pangaea.de/10.1594/PANGAEA.962754. Not perfect, but better than existing singular datasets.
 
 acc rate, thinning function, LID from AICC2012
 
