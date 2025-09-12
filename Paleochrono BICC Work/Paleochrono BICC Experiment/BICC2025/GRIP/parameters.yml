@@ -4,7 +4,7 @@ age_top_sigma: 0. #Error on top age
 depth_grid: #depth grid for the age calculation
     type: 'regular'
     start: &depth_start 5.425
-    end: &depth_end 3028.8
+    end: &depth_end 1624
     resolution: 1.
 age_truncation:
     inf: ~
