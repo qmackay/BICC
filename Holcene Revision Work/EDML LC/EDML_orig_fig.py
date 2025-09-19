@@ -138,6 +138,13 @@ for r in range(len(edml_range)-1):
     y_top = ax[0].get_ylim()[1] + 0.03  # Adjust as needed
     ax[0].scatter(triangle_positions, [y_top]*len(triangle_positions), marker='v', color='grey', edgecolors='black', s=50, zorder=5, clip_on=False)
 
+    # Add age labels above triangles using axis coordinates
+    for depth, year in zip(edml_layer_count["Depth(m)"], edml_layer_count["Year B2K"]):
+        if xlow < depth < xhigh:
+            ax[0].text(depth, 1.05, f"{np.round((year-50),1)}",
+                       rotation=0, ha='center', va='bottom', fontsize=6, color='black',
+                       transform=ax[0].get_xaxis_transform())
+
     # Set shared X axis
     ax[-1].set_xlim(xlow, xhigh)
     ax[-1].set_xlabel("Depth (m)")
@@ -148,7 +155,7 @@ for r in range(len(edml_range)-1):
         axes.tick_params(axis='x', which='minor', length=4, color='gray')
 
     plt.subplots_adjust(hspace=0)
-    plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
+    plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{(min(age_in_bounds)-50)}}}$ to $\bf{{{(max(age_in_bounds)-50)}}}$ |", fontsize=16, y=0.935)
     plt.savefig(f"Original Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
     print(f'{np.round((100*r/len(edml_range)),3)}%')
     plt.close()
