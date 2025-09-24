@@ -43,6 +43,8 @@ for r in range(len(edml_range)-1):
 
     read_lc = pd.concat([read_lc1, read_lc2], ignore_index=True)
 
+    read_ecm = pd.read_csv('/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision Work/EDML LC/Data Files/EDML ECM.txt', skiprows=102, sep='\t')
+
     #take compare data to plot volcanic links
     volcanic_path='EDML-GICC Errors/EDML_GICC_Compare.xlsx'
     read_volcanic = pd.read_excel(volcanic_path) #take the vals
@@ -55,8 +57,11 @@ for r in range(len(edml_range)-1):
     read_lc = read_lc[read_lc['Depth(m)'] > xlow]
     read_lc = read_lc[read_lc['Depth(m)'] < xhigh]
 
+    read_ecm = read_ecm[read_ecm['depth_m'] > xlow]
+    read_ecm = read_ecm[read_ecm['depth_m'] < xhigh]
+
     # Create vertically stacked plots
-    fig, ax = plt.subplots(5, 1, figsize=(24, 10), sharex=True)
+    fig, ax = plt.subplots(6, 1, figsize=(30, 10), sharex=True)
 
     labelfontsize = 12 # Set label font size
 
@@ -89,6 +94,13 @@ for r in range(len(edml_range)-1):
     ax[4].step(read_lc["Depth(m)"], read_lc["Cond(mikroS/cm)"], where='mid', color='black', clip_on=False)
     ax[4].set_ylabel("Cond(mikroS/cm)", color='black', fontsize=labelfontsize) 
     ax[4].tick_params(axis='y', labelcolor='black')
+
+    # Plot 6: ECM (orange)
+    ax[5].step(read_ecm["depth_m"], read_ecm["ec"], where='mid', color='orange', clip_on=False)
+    ax[5].set_ylabel("ECM", color='orange', fontsize=labelfontsize) 
+    ax[5].tick_params(axis='y', labelcolor='orange')
+    ax[5].yaxis.set_label_position("right") #move to right
+    ax[5].yaxis.tick_right()
 
     if lim == True:
         ax[1].set_ylim(0,60) #setting limits for y axis
