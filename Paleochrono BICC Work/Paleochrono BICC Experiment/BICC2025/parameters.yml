@@ -14,7 +14,7 @@ color_sigma: 'm'     #color for the uncertainty
 show_initial: False  #always put to False for now
 color_init: 'c'      #always put to 'c' for now
 show_figures: False  #whether to show or not the figures at the end of the run
-tol: 1.e-1         #Tolerance level for the termination of the optimization.
+tol: 1.e-3         #Tolerance level for the termination of the optimization.
 age_unit: 'yr'
 age_unit_ref: 'B1950'
 fig_format: 'pdf'
