@@ -1,0 +1,8 @@
+age_top_prior: 114000. #age at the top of the sequence
+age_top_sigma: 5000. #Error on top age
+depth_grid: #depth grid for the age calculation
+    type: 'regular'
+    start: 1.5
+    end: 225.
+    resolution: 0.5
+accu_prior_rep: 'staircase' 

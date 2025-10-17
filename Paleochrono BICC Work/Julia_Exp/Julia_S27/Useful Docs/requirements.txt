@@ -1,0 +1,15 @@
+#necessary python reqs
+sys
+os
+time
+math
+numpy
+matplotlib
+warnings
+scipy
+yaml - pyyaml
+gc
+multiprocessing
+warnings
+pickle
+pandas
