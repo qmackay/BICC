@@ -1,4 +1,4 @@
-list_sites: ['EDC']
+list_sites: ['DF','EDC','EDML','WDC']
 
 opt_method: 'trf'  #trf, lm or none. lm is slightly faster. trf has an interactive output.
 jacobian: 'semi_adjoint' #automatic, numerical, semi_analytical, analytical or semi_adjoint.
@@ -16,7 +16,7 @@ show_initial: False  #always put to False for now
 color_init: 'c'      #always put to 'c' for now
 show_figures: False  #whether to show or not the figures at the end of the run
 show_airlayerthick: False #whether to show the air layer thickness figure (buggy on anaconda)
-tol: 1.e-5          #Tolerance level for the termination of the optimization.
+tol: 1e-3          #Tolerance level for the termination of the optimization.
 age_unit: 'yr'
 age_unit_ref: 'B1950'
 outlier_level: 3.
