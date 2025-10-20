@@ -1,6 +1,5 @@
 #EDC Depth	WD Depth	uncertainty
 depth1	depth2	age_unc	comment
-323.31	1628.09	38.15
 418.16	1983.07	71.18
 443.92	2097.63	132.42000000000002
 475.58	2259.39	134.38
