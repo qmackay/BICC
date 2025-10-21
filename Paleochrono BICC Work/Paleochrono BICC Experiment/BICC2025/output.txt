@@ -1,7 +1,0 @@
-Size of VARIABLES vector: 12328
-Size of RESIDUALS vector: 40904
-Initial cost function: 21940522.723663714
-Optimized cost function: 20376.849516835937
-Optimization execution time: 656.9661590731703 seconds
-Program execution time: 934.2479727650061 seconds
-Max memory usage: 12109352 kbytes
