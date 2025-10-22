@@ -1,0 +1,858 @@
+# GISP2 Ice Core 1997 Layer-Counter Timescale
+#----------------------------------------------------
+#                World Data Service for Paleoclimatology, Boulder
+#                                  and
+#                     NOAA Paleoclimatology Program
+#             National Centers for Environmental Information (NCEI)
+#----------------------------------------------------
+# Template Version 4.0
+# Encoding: UTF-8
+# NOTE: Please cite original publication, NOAA Landing Page URL, dataset and publication DOIs (where available), and date accessed when using downloaded data. If there is no publication information, please cite investigator, study title, NOAA Landing Page URL, and date accessed.
+#
+# Description/Documentation lines begin with #
+# Data lines have no #
+#
+# NOAA_Landing_Page: https://www.ncei.noaa.gov/access/paleo-search/study/17835
+#   Landing_Page_Description: NOAA Landing Page of this file's parent study, which includes all study metadata.
+#
+# Study_Level_JSON_Metadata: https://www.ncei.noaa.gov/pub/data/metadata/published/paleo/json/noaa-icecore-17835.json
+#   Study_Level_JSON_Description: JSON metadata of this data file's parent study, which includes all study metadata.
+#
+# Data_Type: Ice Cores
+#
+# Dataset_DOI: 10.25921/8b9t-1h52
+#
+# Science_Keywords: 
+#--------------------
+# Resource_Links
+#
+# Data_Download_Resource:  https://www.ncei.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/depthage/bcoreage-noaa.txt
+#   Data_Download_Description: NOAA Template File; GISP2 B-core Layer Counted Timescale
+#
+#--------------------
+# Contribution_Date
+#   Date: 1997-11-30
+#--------------------
+# File_Last_Modified_Date
+#   Date: 2024-01-30
+#--------------------
+# Title
+#   Study_Name: GISP2 Ice Core 1997 Layer-Counter Timescale
+#--------------------
+# Investigators
+#   Investigators: Meese, D.A.; Gow, A.J.; Alley, R.B.(https://orcid.org/0000-0003-1833-0115); Zielinski, G.A.; Grootes, P.M.(https://orcid.org/0000-0003-4265-3168); Ram, M.; Taylor, K.C.(https://orcid.org/0000-0001-8535-1261); Mayewski, P.A.(https://orcid.org/0000-0002-3360-763X); Bolzan, J.F.
+#--------------------
+# Description_Notes_and_Keywords
+#   Description: This is the depth-age scale for the GISP2 D core based on annual layer counting.  This time-scale provides more annual detail than the official GISP2 timescale (the Meese/Sowers timescale).
+#--------------------
+# Publication
+#   Authors: D. A. Meese, A. J. Gow, R. B. Alley, G. A. Zielinski, P. M. Grootes, M. Ram, K. C. Taylor, P. A. Mayewski, J. F. Bolzan
+#   Journal_Name: Journal of Geophysical Research: Oceans
+#   Published_Title: The Greenland Ice Sheet Project 2 depth-age scale: Methods and results
+#   Published_Date_or_Year: 1997
+#   Volume: 102
+#   Pages: 26411-26423
+#   Issue: C12
+#   Report_Number: 
+#   DOI: 10.1029/97JC00269
+#   Full_Citation:
+#   Abstract: The Greenland Ice Sheet Project 2 (GISP2) depth-age scale is presented based on a multiparameter continuous count approach, to a depth of 2800 m, using a systematic combination of parameters that have never been used to this extent before. The ice at 2800 m is dated at 110,000 years B.P. with an estimated error ranging from 1 to 10% in the top 2500 m of the core and averaging 20% between 2500 and 2800 m. Parameters used to date the core include visual stratigraphy, oxygen isotopic ratios of the ice, electrical conductivity measurements, laser-light scattering from dust, volcanic signals, and major ion chemistry. GISP2 ages for major climatic events agree with independent ages based on varve chronologies, calibrated radiocarbon dates, and other techniques within the combined uncertainties. Good agreement also is obtained with Greenland Ice Core Project ice core dates and with the SPECMAP marine timescale after correlation through the d18O of O2. Although the core is deformed below 2800 m and the continuity of the record is unclear, we attempted to date this section of the core on the basis of the laser-light scattering of dust in the ice.
+#--------------------
+#   Authors: D. A. Meese, A. J. Gow, P. Grootes, M. Stuiver, P. A. Mayewski, G. A. Zielinski, M. Ram, K. C. Taylor, and E. D. Waddington
+#   Journal_Name: Science
+#   Published_Title: The Accumulation Record from the GISP2 Core as an Indicator of Climate Change Throughout the Holocene
+#   Published_Date_or_Year: 1994
+#   Volume: 266
+#   Pages: 1680-1682
+#   Issue: 5191
+#   Report_Number: 
+#   DOI: 10.1126/science.266.5191.1680
+#   Full_Citation:
+#   Abstract: A depth-age scale and an accumulation history for the Holocene have been established on the Greenland Ice Sheet Project 2 (GISP2) deep core, providing the most continuously dated record of annual layer accumulation currently available. The depth-age scale was obtained with the use of various independent techniques to count annual layers in the core. An annual record of surface accumulation during the Holocene was obtained by correcting the observed layer thicknesses for flow-thinning. Fluctuations in accumulation provide a continuous and detailed record of climate variability over central Greenland during the Holocene. Climate events, including "Little Ice Age" type events, are examined.
+#--------------------
+#   Authors: Meese, D.A., R.B. Alley, R.J. Fiacco, M.S. Germani, A.J. Gow, P.M. Grootes, M. Illing, P.A. Mayewski, M.C. Morrison, M. Ram, K.C. Taylor, Q. Yang, and G.A. Zielinski
+#   Journal_Name: Special CRREL Report
+#   Published_Title: Preliminary depth-agescale of the GISP2 ice core
+#   Published_Date_or_Year: 1994
+#   Volume: 
+#   Pages: 
+#   Issue: 
+#   Report_Number: 94-1
+#   DOI:
+#   Full_Citation:
+#   Abstract: None
+#--------------------
+#   Authors: Alley, R.B., D.A. Meese, C.A. Shuman, A.J. Gow, K.C. Taylor, P.M. Grootes, J.W.C. White, M. Ram, E.D. Waddington, P.A. Mayewski, and G.A. Zielinski
+#   Journal_Name: Nature
+#   Published_Title: Abrupt increase in Greenland snow accumulation at the end of the Younger Dryas event
+#   Published_Date_or_Year: 1993
+#   Volume: 362
+#   Pages: 527â€“529
+#   Issue: 
+#   Report_Number: 
+#   DOI: 10.1038/362527a0
+#   Full_Citation:
+#   Abstract: The warming at the end of the last glaciation was characterized by a series of abrupt returns to glacial climate, the best-known of which is the Younger Dryas event. Despite much study of the causes of this event and the mechanisms by which it ended, many questions remain unresolved. Oxygen isotope data from Greenland ice cores suggest that the Younger Dryas ended abruptly, over a period of about 50 years; dust concentrations in these cores show an even more rapid transition (â‰²20 years). This extremely short timescale places severe constraints on the mechanisms underlying the transition. But dust concentrations can reflect subtle changes in atmospheric circulation, which need not be associated with a large change in climate. Here we present results from a new Greenland ice core (GISP2) showing that snow accumulation doubled rapidly from the Younger Dryas event to the subsequent Preboreal interval, possibly in one to three years. We also find that the accumulation-rate change from the Oldest Dryas to the BÃ¸11ing/AllerÃ¸d warm period was large and abrupt. The extreme rapidity of these changes in a variable that directly represents regional climate implies that the events at the end of the last glaciation may have been responses to some kind of threshold or trigger in the North Atlantic climate system.
+#--------------------
+# Funding_Agency
+#   Funding_Agency_Name:
+#   Grant:
+#--------------------
+# Site_Information
+#   Site_Name: GISP2
+#   Location: Greenland
+#   Northernmost_Latitude: 72.583333
+#   Southernmost_Latitude: 72.583333
+#   Easternmost_Longitude: -38.466667
+#   Westernmost_Longitude: -38.466667
+#   Elevation_m: 3200
+#--------------------
+# Data_Collection
+#   Collection_Name: GISP21997layertime-Bcore
+#   First_Year: 680
+#   Last_Year: -38
+#   Time_Unit: cal yr BP
+#   Core_Length_m:
+#   Parameter_Keywords: age control
+#   Notes: This is the final layer-counted timescale for the GISP2 B-core.  This core was drilled earlier than the GISP2 deep core (Core "D") and has a total depth of less than 200 meters.  Based on the dating committee's recommendation, the B-core is offset from the D-core by 1.09 meters, and a correction has been made in all D-core timescales.  This file contains the original, true B-core depths.  More details on how the counting was done are given in the references listed, in the "A Note on the Timescales" and in the files 'gisp2age.dat' and 'countage.dat.' As for all timescales on this CDROM, all ages are in years before 1950 AD, where "0" represents summer, 1950.
+#--------------------
+# Chronology_Information
+# Chronology:
+#--------------------
+# Variables
+# PaST_Thesaurus_Download_Resource: https://www.ncei.noaa.gov/access/paleo-search/skos/past-thesaurus.rdf
+#   PaST_Thesaurus_Download_Description: Paleoenvironmental Standard Terms (PaST) Thesaurus terms, definitions, and relationships in SKOS format.
+#
+# Data variables follow that are preceded by '##' in columns one and two.
+# Variables list, one per line, shortname-tab-var components: what, material, error, units, seasonality, data type, detail, method, C or N for Character or Numeric data)
+#
+## age_CE	ice age,,,year Common Era,,ice cores,,,N,
+## age_calBP	ice age,,,calendar year before present,,ice cores,,,N,
+## depth_m	depth,,,meter,,ice cores,,,N,
+## thick_m	layer thickness,bulk ice,,meter,,ice cores,,,N,annual layer thickness
+## comments	notes,,,,,ice cores,,,C,
+#--------------------
+# Data:
+# Data lines follow (have no #)
+# Data line format - tab-delimited text, variable short name as header
+# Missing_Values:
+age_CE	age_calBP	depth_m	thick_m	comments	
+1988	-38	0.42	0.42
+1987	-37	0.95	0.54
+1986	-36	1.73	0.78
+1985	-35	2.23	0.5
+1984	-34	2.9	0.67
+1983	-33	3.62	0.72
+1982	-32	4.09	0.47
+1981	-31	4.43	0.34
+1980	-30	4.95	0.52
+1979	-29	5.54	0.59
+1978	-28	5.92	0.39
+1977	-27	6.53	0.61
+1976	-26	7.13	0.6
+1975	-25	7.66	0.52
+1974	-24	8.14	0.48
+1973	-23	8.41	0.27
+1972	-22	8.82	0.41
+1971	-21	9.34	0.52
+1970	-20	9.74	0.4
+1969	-19	10.19	0.45
+1968	-18	10.63	0.44
+1967	-17	11.05	0.42
+1966	-16	11.48	0.43
+1965	-15	11.77	0.29
+1964	-14	12.2	0.43
+1963	-13	12.65	0.45
+1962	-12	13.09	0.44
+1961	-11	13.53	0.44
+1960	-10	13.84	0.31
+1959	-9	14.33	0.49
+1958	-8	14.75	0.42
+1957	-7	15.17	0.42
+1956	-6	15.6	0.43
+1955	-5	15.96	0.36
+1954	-4	16.46	0.5
+1953	-3	16.94	0.48
+1952	-2	17.38	0.44
+1951	-1	17.82	0.44
+1950	0	18.1	0.28
+1949	1	18.42	0.32
+1948	2	18.77	0.35
+1947	3	19.33	0.56
+1946	4	19.7	0.37
+1945	5	20.01	0.32
+1944	6	20.5	0.49
+1943	7	20.89	0.39
+1942	8	21.33	0.43
+1941	9	21.85	0.52
+1940	10	22.2	0.35
+1939	11	22.57	0.37
+1938	12	23	0.43
+1937	13	23.33	0.33
+1936	14	23.59	0.26
+1935	15	23.95	0.36
+1934	16	24.37	0.42
+1933	17	24.83	0.47
+1932	18	25.16	0.33
+1931	19	25.43	0.27
+1930	20	25.94	0.51
+1929	21	26.33	0.39
+1928	22	26.71	0.38
+1927	23	27.08	0.38
+1926	24	27.33	0.25
+1925	25	27.74	0.41
+1924	26	27.96	0.22
+1923	27	28.32	0.36
+1922	28	28.57	0.25
+1921	29	28.92	0.35
+1920	30	29.36	0.44
+1919	31	29.57	0.21
+1918	32	29.81	0.23
+1917	33	30.2	0.4
+1916	34	30.62	0.41
+1915	35	30.95	0.34
+1914	36	31.43	0.47
+1913	37	31.73	0.3
+1912	38	32.12	0.39
+1911	39	32.45	0.33
+1910	40	32.81	0.36
+1909	41	33.18	0.37
+1908	42	33.55	0.37
+1907	43	33.83	0.28
+1906	44	34.26	0.43
+1905	45	34.42	0.16
+1904	46	34.65	0.23
+1903	47	35.03	0.38
+1902	48	35.26	0.23
+1901	49	35.44	0.18
+1900	50	35.76	0.32
+1899	51	36.21	0.45
+1898	52	36.49	0.28
+1897	53	36.79	0.3
+1896	54	37.06	0.27
+1895	55	37.53	0.47
+1894	56	37.74	0.22
+1893	57	38.06	0.32
+1892	58	38.45	0.39
+1891	59	38.81	0.36
+1890	60	39.13	0.32
+1889	61	39.44	0.31
+1888	62	39.87	0.43
+1887	63	40.23	0.36
+1886	64	40.58	0.35
+1885	65	40.87	0.3
+1884	66	41.29	0.41
+1883	67	41.6	0.31
+1882	68	41.86	0.26
+1881	69	42.1	0.24
+1880	70	42.4	0.29
+1879	71	42.78	0.38
+1878	72	43.19	0.41
+1877	73	43.6	0.41
+1876	74	43.83	0.23
+1875	75	44.11	0.29
+1874	76	44.44	0.33
+1873	77	44.79	0.35
+1872	78	45.17	0.38
+1871	79	45.47	0.3
+1870	80	45.78	0.31
+1869	81	46.12	0.34
+1868	82	46.34	0.22
+1867	83	46.63	0.29
+1866	84	46.88	0.25
+1865	85	47.17	0.29
+1864	86	47.45	0.28
+1863	87	47.79	0.33
+1862	88	48.1	0.32
+1861	89	48.33	0.23
+1860	90	48.68	0.35
+1859	91	49.04	0.35
+1858	92	49.37	0.34
+1857	93	49.63	0.26
+1856	94	49.84	0.21
+1855	95	50.28	0.44
+1854	96	50.61	0.33
+1853	97	50.97	0.35
+1852	98	51.22	0.26
+1851	99	51.56	0.34
+1850	100	51.86	0.3
+1849	101	52.16	0.3
+1848	102	52.44	0.28
+1847	103	52.8	0.36
+1846	104	53.07	0.27
+1845	105	53.33	0.26
+1844	106	53.51	0.18
+1843	107	53.82	0.31
+1842	108	54.11	0.29
+1841	109	54.36	0.25
+1840	110	54.55	0.19
+1839	111	54.94	0.39
+1838	112	55.15	0.21
+1837	113	55.54	0.4
+1836	114	55.85	0.31
+1835	115	56.07	0.21
+1834	116	56.33	0.27
+1833	117	56.61	0.28
+1832	118	56.97	0.36
+1831	119	57.31	0.35
+1830	120	57.69	0.38
+1829	121	58.14	0.45
+1828	122	58.49	0.35
+1827	123	58.85	0.35
+1826	124	59.07	0.22
+1825	125	59.42	0.35
+1824	126	59.69	0.27
+1823	127	59.92	0.23
+1822	128	60.22	0.3
+1821	129	60.47	0.25
+1820	130	60.76	0.29
+1819	131	61.09	0.33
+1818	132	61.33	0.23
+1817	133	61.59	0.26
+1816	134	61.77	0.18
+1815	135	62.04	0.27
+1814	136	62.24	0.2
+1813	137	62.52	0.28
+1812	138	62.74	0.22
+1811	139	63.04	0.3
+1810	140	63.38	0.34
+1809	141	63.7	0.31
+1808	142	64.08	0.39
+1807	143	64.35	0.27
+1806	144	64.61	0.26
+1805	145	64.9	0.29
+1804	146	65.08	0.17
+1803	147	65.5	0.43
+1802	148	65.82	0.32
+1801	149	66.05	0.23
+1800	150	66.28	0.23
+1799	151	66.54	0.25
+1798	152	66.73	0.2
+1797	153	67.15	0.41
+1796	154	67.44	0.29
+1795	155	67.75	0.31
+1794	156	68.09	0.34
+1793	157	68.28	0.19
+1792	158	68.58	0.3
+1791	159	68.83	0.25
+1790	160	69.06	0.23
+1789	161	69.31	0.25
+1788	162	69.57	0.26
+1787	163	69.82	0.25
+1786	164	70.06	0.24
+1785	165	70.37	0.31
+1784	166	70.86	0.49
+1783	167	71.1	0.24
+1782	168	71.34	0.24
+1781	169	71.54	0.2
+1780	170	71.81	0.27
+1779	171	72.05	0.23
+1778	172	72.34	0.3
+1777	173	72.54	0.2
+1776	174	72.82	0.28
+1775	175	73.03	0.21
+1774	176	73.3	0.27
+1773	177	73.64	0.34
+1772	178	73.94	0.3
+1771	179	74.18	0.23
+1770	180	74.38	0.2
+1769	181	74.65	0.28
+1768	182	74.96	0.3
+1767	183	75.19	0.24
+1766	184	75.38	0.19
+1765	185	75.56	0.18
+1764	186	75.8	0.25
+1763	187	76.13	0.32
+1762	188	76.4	0.27
+1761	189	76.67	0.28
+1760	190	76.85	0.18
+1759	191	77.11	0.25
+1758	192	77.55	0.44
+1757	193	77.73	0.18
+1756	194	78.03	0.3
+1755	195	78.26	0.23
+1754	196	78.6	0.34
+1753	197	78.86	0.26
+1752	198	79.05	0.19
+1751	199	79.34	0.29
+1750	200	79.65	0.31
+1749	201	80.06	0.4
+1748	202	80.3	0.25
+1747	203	80.67	0.37
+1746	204	80.86	0.19
+1745	205	81.04	0.18
+1744	206	81.31	0.27
+1743	207	81.53	0.22
+1742	208	81.83	0.3
+1741	209	82.03	0.2
+1740	210	82.28	0.25
+1739	211	82.45	0.17
+1738	212	82.75	0.3
+1737	213	82.98	0.23
+1736	214	83.2	0.22
+1735	215	83.57	0.37
+1734	216	83.84	0.27
+1733	217	84.1	0.26
+1732	218	84.35	0.25
+1731	219	84.65	0.3
+1730	220	84.96	0.31
+1729	221	85.27	0.31
+1728	222	85.51	0.25
+1727	223	85.84	0.32
+1726	224	86.03	0.2
+1725	225	86.29	0.26
+1724	226	86.48	0.19
+1723	227	86.84	0.36
+1722	228	87.15	0.31
+1721	229	87.4	0.25
+1720	230	87.66	0.26
+1719	231	87.95	0.28
+1718	232	88.14	0.19
+1717	233	88.39	0.25
+1716	234	88.72	0.33
+1715	235	88.88	0.17
+1714	236	89.07	0.18
+1713	237	89.24	0.18
+1712	238	89.74	0.5
+1711	239	89.91	0.17
+1710	240	90.12	0.21
+1709	241	90.4	0.28
+1708	242	90.67	0.28
+1707	243	90.85	0.17
+1706	244	91.08	0.23
+1705	245	91.21	0.13
+1704	246	91.52	0.31
+1703	247	91.86	0.34
+1702	248	92.04	0.18
+1701	249	92.2	0.16
+1700	250	92.42	0.22
+1699	251	92.76	0.34
+1698	252	93.07	0.31
+1697	253	93.34	0.28
+1696	254	93.8	0.45
+1695	255	94.02	0.23
+1694	256	94.22	0.2
+1693	257	94.44	0.22
+1692	258	94.73	0.28
+1691	259	94.96	0.23
+1690	260	95.3	0.34
+1689	261	95.54	0.24
+1688	262	95.85	0.31
+1687	263	96.1	0.25
+1686	264	96.37	0.26
+1685	265	96.56	0.2
+1684	266	96.88	0.32
+1683	267	97.2	0.33
+1682	268	97.4	0.2
+1681	269	97.7	0.3
+1680	270	97.96	0.27
+1679	271	98.24	0.27
+1678	272	98.43	0.19
+1677	273	98.86	0.44
+1676	274	99.16	0.3
+1675	275	99.34	0.18
+1674	276	99.61	0.27
+1673	277	99.91	0.3
+1672	278	100.14	0.23
+1671	279	100.33	0.19
+1670	280	100.6	0.27
+1669	281	100.83	0.23
+1668	282	101.11	0.28
+1667	283	101.49	0.38
+1666	284	101.72	0.23
+1665	285	101.87	0.15
+1664	286	102.07	0.2
+1663	287	102.26	0.19
+1662	288	102.49	0.23
+1661	289	102.75	0.26
+1660	290	102.95	0.2
+1659	291	103.18	0.23
+1658	292	103.45	0.27
+1657	293	103.8	0.35
+1656	294	104.07	0.27
+1655	295	104.31	0.24
+1654	296	104.58	0.27
+1653	297	104.85	0.27
+1652	298	105.06	0.21
+1651	299	105.31	0.25
+1650	300	105.57	0.26
+1649	301	105.79	0.22
+1648	302	106.05	0.26
+1647	303	106.31	0.26
+1646	304	106.61	0.3
+1645	305	106.92	0.31
+1644	306	107.08	0.16
+1643	307	107.4	0.32
+1642	308	107.65	0.25
+1641	309	107.83	0.18
+1640	310	108.06	0.23
+1639	311	108.3	0.24
+1638	312	108.6	0.3
+1637	313	108.81	0.21
+1636	314	109.19	0.38
+1635	315	109.52	0.33
+1634	316	109.75	0.23
+1633	317	110	0.25
+1632	318	110.21	0.21	long year
+1631	319	110.48	0.27
+1630	320	110.82	0.34
+1629	321	111.12	0.3
+1628	322	111.38	0.26
+1627	323	111.6	0.22
+1626	324	111.83	0.23
+1625	325	112	0.17
+1624	326	112.18	0.18
+1623	327	112.54	0.36
+1622	328	112.78	0.24
+1621	329	113.01	0.23
+1620	330	113.29	0.28
+1619	331	113.55	0.26
+1618	332	113.85	0.3
+1617	333	114.09	0.24
+1616	334	114.38	0.29
+1615	335	114.61	0.23
+1614	336	114.89	0.28
+1613	337	115.2	0.31
+1612	338	115.44	0.24
+1611	339	115.65	0.21
+1610	340	115.9	0.25
+1609	341	116.13	0.23
+1608	342	116.31	0.18
+1607	343	116.5	0.19
+1606	344	116.75	0.25
+1605	345	116.9	0.15
+1604	346	117.2	0.3
+1603	347	117.47	0.27
+1602	348	117.8	0.33
+1601	349	118	0.2
+1600	350	118.2	0.2	long year
+1599	351	118.45	0.25
+1598	352	118.7	0.25
+1597	353	119	0.3
+1596	354	119.2	0.2
+1595	355	119.46	0.26
+1594	356	119.67	0.21
+1593	357	119.89	0.22
+1592	358	120	0.11
+1591	359	120.3	0.3
+1590	360	120.53	0.23
+1589	361	120.82	0.29
+1588	362	121.2	0.38
+1587	363	121.48	0.28
+1586	364	121.71	0.23
+1585	365	121.94	0.23
+1584	366	122.22	0.28
+1583	367	122.4	0.18	long year
+1582	368	122.72	0.32
+1581	369	122.94	0.22
+1580	370	123.15	0.21
+1579	371	123.37	0.22
+1578	372	123.7	0.33
+1577	373	124.03	0.33
+1576	374	124.17	0.14
+1575	375	124.41	0.24
+1574	376	124.7	0.29
+1573	377	124.95	0.25
+1572	378	125.13	0.18
+1571	379	125.37	0.24
+1570	380	125.59	0.22
+1569	381	125.85	0.26
+1568	382	126.06	0.21
+1567	383	126.36	0.3
+1566	384	126.55	0.19
+1565	385	126.8	0.25
+1564	386	126.99	0.19
+1563	387	127.2	0.21
+1562	388	127.47	0.27
+1561	389	127.6	0.13
+1560	390	127.87	0.27
+1559	391	128.01	0.14
+1558	392	128.18	0.17
+1557	393	128.38	0.2
+1556	394	128.61	0.23
+1555	395	128.86	0.25
+1554	396	129.14	0.28
+1553	397	129.38	0.24
+1552	398	129.62	0.24
+1551	399	129.79	0.17
+1550	400	130.14	0.35
+1549	401	130.36	0.22
+1548	402	130.62	0.26
+1547	403	130.86	0.24
+1546	404	131.1	0.24
+1545	405	131.33	0.23
+1544	406	131.52	0.19
+1543	407	131.85	0.33
+1542	408	132.1	0.25
+1541	409	132.38	0.28
+1540	410	132.7	0.32
+1539	411	132.89	0.19
+1538	412	133.15	0.26
+1537	413	133.33	0.18
+1536	414	133.64	0.31
+1535	415	133.85	0.21
+1534	416	134.07	0.22
+1533	417	134.35	0.28
+1532	418	134.61	0.26
+1531	419	134.85	0.24
+1530	420	135.16	0.31
+1529	421	135.35	0.19
+1528	422	135.63	0.28
+1527	423	135.81	0.18
+1526	424	136.06	0.25
+1525	425	136.31	0.25
+1524	426	136.56	0.25
+1523	427	136.86	0.3
+1522	428	137.1	0.24
+1521	429	137.3	0.2
+1520	430	137.45	0.15
+1519	431	137.64	0.19
+1518	432	137.8	0.16
+1517	433	138.07	0.27
+1516	434	138.3	0.23
+1515	435	138.46	0.16
+1514	436	138.64	0.18
+1513	437	138.88	0.24
+1512	438	139.13	0.25
+1511	439	139.48	0.35
+1510	440	139.73	0.25
+1509	441	139.98	0.25
+1508	442	140.17	0.19
+1507	443	140.44	0.27
+1506	444	140.66	0.22
+1505	445	140.83	0.17
+1504	446	141.15	0.32
+1503	447	141.34	0.19
+1502	448	141.61	0.27
+1501	449	141.98	0.37
+1500	450	142.23	0.25
+1499	451	142.42	0.19
+1498	452	142.72	0.3
+1497	453	142.97	0.25
+1496	454	143.13	0.16
+1495	455	143.46	0.33
+1494	456	143.55	0.09
+1493	457	143.7	0.15
+1492	458	144.1	0.4
+1491	459	144.36	0.26
+1490	460	144.66	0.3
+1489	461	144.88	0.22
+1488	462	145.13	0.25
+1487	463	145.3	0.17
+1486	464	145.58	0.28
+1485	465	145.8	0.22
+1484	466	146.04	0.24
+1483	467	146.14	0.1
+1482	468	146.45	0.31
+1481	469	146.64	0.19
+1480	470	146.88	0.24
+1479	471	147.29	0.41
+1478	472	147.35	0.06
+1477	473	147.57	0.22
+1476	474	147.8	0.23
+1475	475	147.99	0.19
+1474	476	148.12	0.13
+1473	477	148.31	0.19
+1472	478	148.54	0.23
+1471	479	148.82	0.28
+1470	480	148.98	0.16
+1469	481	149	0.02
+1468	482	149.15	0.15
+1467	483	149.39	0.24
+1466	484	149.65	0.26
+1465	485	149.9	0.25
+1464	486	150.15	0.25
+1463	487	150.31	0.16
+1462	488	150.5	0.19
+1461	489	150.73	0.23
+1460	490	151.02	0.29
+1459	491	151.4	0.38
+1458	492	151.59	0.19
+1457	493	151.9	0.31
+1456	494	152.15	0.25
+1455	495	152.45	0.3
+1454	496	152.55	0.1
+1453	497	152.76	0.21
+1452	498	152.96	0.2
+1451	499	153.25	0.29
+1450	500	153.49	0.24
+1449	501	153.59	0.1
+1448	502	153.89	0.3
+1447	503	154.12	0.23
+1446	504	154.35	0.23
+1445	505	154.61	0.26
+1444	506	154.84	0.23
+1443	507	155.07	0.23
+1442	508	155.19	0.12
+1441	509	155.43	0.24
+1440	510	155.71	0.28
+1439	511	156.03	0.32
+1438	512	156.19	0.16
+1437	513	156.32	0.13
+1436	514	156.65	0.33
+1435	515	156.88	0.23
+1434	516	157.14	0.26
+1433	517	157.42	0.28
+1432	518	157.62	0.2
+1431	519	157.83	0.21
+1430	520	158.17	0.34
+1429	521	158.51	0.34
+1428	522	158.79	0.28
+1427	523	158.98	0.19
+1426	524	159.2	0.22
+1425	525	159.44	0.24
+1424	526	159.73	0.29
+1423	527	160	0.27
+1422	528	160.2	0.2
+1421	529	160.46	0.26
+1420	530	160.67	0.21
+1419	531	160.96	0.29
+1418	532	161.18	0.22
+1417	533	161.43	0.25
+1416	534	161.75	0.32
+1415	535	162	0.25
+1414	536	162.14	0.14
+1413	537	162.43	0.29
+1412	538	162.67	0.24
+1411	539	162.87	0.2
+1410	540	163.19	0.32
+1409	541	163.48	0.29
+1408	542	163.69	0.21
+1407	543	163.86	0.17
+1406	544	164.09	0.23
+1405	545	164.28	0.19
+1404	546	164.43	0.15
+1403	547	164.75	0.32
+1402	548	164.95	0.2
+1401	549	165.12	0.17
+1400	550	165.4	0.28
+1399	551	165.63	0.23
+1398	552	165.99	0.36
+1397	553	166.17	0.18
+1396	554	166.52	0.35
+1395	555	166.76	0.24
+1394	556	166.82	0.06
+1393	557	167.07	0.25
+1392	558	167.47	0.4
+1391	559	167.67	0.2
+1390	560	167.82	0.15
+1389	561	167.97	0.15
+1388	562	168.12	0.15
+1387	563	168.32	0.2
+1386	564	168.65	0.33
+1385	565	168.88	0.23
+1384	566	169.13	0.25
+1383	567	169.36	0.23
+1382	568	169.61	0.25
+1381	569	169.8	0.19
+1380	570	169.98	0.18
+1379	571	170.12	0.14
+1378	572	170.42	0.3
+1377	573	170.66	0.24
+1376	574	170.92	0.26
+1375	575	171.11	0.19
+1374	576	171.35	0.24
+1373	577	171.58	0.23
+1372	578	171.89	0.31
+1371	579	172.03	0.14
+1370	580	172.27	0.24
+1369	581	172.51	0.24
+1368	582	172.75	0.24
+1367	583	172.98	0.23
+1366	584	173.14	0.16
+1365	585	173.43	0.29
+1364	586	173.55	0.12
+1363	587	173.85	0.3
+1362	588	174.1	0.25
+1361	589	174.26	0.16
+1360	590	174.38	0.12
+1359	591	174.6	0.22
+1358	592	174.7	0.1
+1357	593	174.94	0.24
+1356	594	175.12	0.18
+1355	595	175.21	0.09
+1354	596	175.41	0.2
+1353	597	175.62	0.21
+1352	598	175.88	0.26
+1351	599	176.13	0.25
+1350	600	176.39	0.26
+1349	601	176.63	0.24
+1348	602	176.8	0.17
+1347	603	177.04	0.24
+1346	604	177.21	0.17
+1345	605	177.52	0.31
+1344	606	177.69	0.17
+1343	607	177.89	0.2
+1342	608	178.1	0.21
+1341	609	178.3	0.2
+1340	610	178.5	0.2
+1339	611	178.72	0.22
+1338	612	179.01	0.29
+1337	613	179.24	0.23
+1336	614	179.46	0.22
+1335	615	179.88	0.42
+1334	616	179.98	0.1
+1333	617	180.12	0.14
+1332	618	180.41	0.29
+1331	619	180.68	0.27
+1330	620	180.99	0.31
+1329	621	181.08	0.09
+1328	622	181.26	0.18
+1327	623	181.68	0.42
+1326	624	181.81	0.13
+1325	625	181.95	0.14
+1324	626	182.13	0.18
+1323	627	182.34	0.21
+1322	628	182.7	0.36
+1321	629	182.98	0.28
+1320	630	183.23	0.25
+1319	631	183.4	0.17
+1318	632	183.66	0.26
+1317	633	183.95	0.29
+1316	634	184.04	0.09
+1315	635	184.26	0.22
+1314	636	184.52	0.26
+1313	637	184.81	0.29
+1312	638	184.95	0.14
+1311	639	185.26	0.31
+1310	640	185.53	0.27
+1309	641	185.73	0.2
+1308	642	186.07	0.34
+1307	643	186.34	0.27
+1306	644	186.57	0.23
+1305	645	186.79	0.22
+1304	646	187.08	0.29
+1303	647	187.26	0.18
+1302	648	187.47	0.21
+1301	649	187.65	0.18
+1300	650	187.89	0.24
+1299	651	188.12	0.23
+1298	652	188.37	0.25
+1297	653	188.58	0.21
+1296	654	188.79	0.21
+1295	655	189.06	0.27
+1294	656	189.31	0.25
+1293	657	189.52	0.21
+1292	658	189.68	0.16
+1291	659	189.96	0.28
+1290	660	190.14	0.18
+1289	661	190.39	0.25
+1288	662	190.5	0.11
+1287	663	190.62	0.12
+1286	664	190.86	0.24
+1285	665	191.01	0.15
+1284	666	191.22	0.21
+1283	667	191.53	0.31
+1282	668	191.7	0.17
+1281	669	191.94	0.24
+1280	670	192.04	0.1
+1279	671	192.16	0.12
+1278	672	192.25	0.09
+1277	673	192.5	0.25
+1276	674	192.77	0.27
+1275	675	193.03	0.26
+1274	676	193.12	0.09
+1273	677	193.34	0.22
+1272	678	193.64	0.3
+1271	679	193.81	0.17
+1270	680	193.99	0.18
