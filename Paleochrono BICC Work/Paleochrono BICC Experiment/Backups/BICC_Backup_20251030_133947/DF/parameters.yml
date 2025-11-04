@@ -1,0 +1,28 @@
+#Parameters specific to the DF ice core
+#TODO: check this file with the Parrenin et al. (CP, 2007) parameters
+calc_deporate: False
+calc_thinning: False
+calc_lid: False
+calc_a_method: 'fullcorr'
+age_top_prior: -50
+age_top_sigma: 5.
+udepth_top: 0.
+
+depth_grid: #depth grid for the age calculation
+    type: 'regular'
+    start: 0.
+    end: 3032.
+    resolution: 1.
+
+gamma_source: 3.2 
+beta_source: 1.6  
+deporate0: 0.032
+beta: 0.010
+pprime: 1.19
+sliding: 0.
+muprime: -3.203371638
+k: 0.3
+       
+lid_value: 98.
+restart: False
+accu_prior_rep: 'staircase'    #linear or staircase. Define whether the prior accu representation is linear or staircase in-between the data points.

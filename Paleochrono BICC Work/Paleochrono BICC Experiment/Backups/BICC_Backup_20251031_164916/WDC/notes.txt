@@ -1,0 +1,1 @@
+Currently using new layer count from my work as the horizons, and the rest as intervals from the original layer count, aligned to continue counting from the end of the modified count. Age_unc for horizons is estimated from the original file.
