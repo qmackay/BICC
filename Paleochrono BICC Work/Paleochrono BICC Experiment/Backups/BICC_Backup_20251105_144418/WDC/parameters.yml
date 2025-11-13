@@ -1,0 +1,11 @@
+#Parameters specific to the WDC ice core
+age_top_prior: -56. #age at the top of the sequence
+age_top_sigma: 0. #Error on top age
+depth_grid: #depth grid for the age calculation
+    type: 'regular'
+    start: &depth_start 0.36
+    end: &depth_end 3405.
+    resolution: 1.
+age_truncation:
+    inf: ~
+    sup: 300000.

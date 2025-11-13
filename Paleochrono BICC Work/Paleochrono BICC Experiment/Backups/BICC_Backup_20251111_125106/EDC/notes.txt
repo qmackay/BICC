@@ -1,0 +1,1 @@
+#EDC Gas CH4 from Adira dependent on offset calculation done by Savarino

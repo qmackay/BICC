@@ -1,0 +1,7 @@
+density is actually the NGRIP density profile, because the subset of existing data we have from GRIP fits the same profile extremely well. See grip_density_spline in python code.
+
+thinning is the thickness (m) / acc rate from the 1991 file. Not very good, but gives an estimate.
+
+accumulation rate (deposition) is created by thickness/thinning, where thickness is from GICC05 layers. Doesn't have anything deeper (but neither does out general ages). Code in the python code folder.
+
+LID is from GICC05
