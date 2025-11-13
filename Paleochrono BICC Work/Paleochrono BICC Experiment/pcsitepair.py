@@ -54,10 +54,15 @@ class SitePair(object):
             self.iceicehorizons_depth1 = df['depth1'].to_numpy(dtype=float)
             self.iceicehorizons_depth2 = df['depth2'].to_numpy(dtype=float)
             self.iceicehorizons_sigma = df['age_unc'].to_numpy(dtype=float)
+            try:
+                self.iceicehorizons_phasing = df['phasing'].to_numpy(dtype=float)
+            except:
+                self.iceicehorizons_phasing = np.zeros_like(self.iceicehorizons_depth1)
         else:
             self.iceicehorizons_depth1 = np.array([])
             self.iceicehorizons_depth2 = np.array([])
             self.iceicehorizons_sigma = np.array([])
+            self.iceicehorizons_phasing = np.array([])
         self.iceicehorizons_correlation = np.diag(np.ones(np.size(self.iceicehorizons_depth1)))
 
         if self.site1.archive == 'icecore' and self.site2.archive == 'icecore':
@@ -68,10 +73,15 @@ class SitePair(object):
                 self.airairhorizons_depth1 = df['depth1'].to_numpy(dtype=float)
                 self.airairhorizons_depth2 = df['depth2'].to_numpy(dtype=float)
                 self.airairhorizons_sigma = df['age_unc'].to_numpy(dtype=float)
+                try:
+                    self.airairhorizons_phasing = df['phasing'].to_numpy(dtype=float)
+                except:
+                    self.airairhorizons_phasing = np.zeros_like(self.airairhorizons_depth1)
             else:
                 self.airairhorizons_depth1 = np.array([])
                 self.airairhorizons_depth2 = np.array([])
                 self.airairhorizons_sigma = np.array([])
+                self.airairhorizons_phasing = np.array([])
             self.airairhorizons_correlation = np.diag(np.ones(np.size(self.airairhorizons_depth1)))
 
         if self.site2.archive == 'icecore':
@@ -86,10 +96,15 @@ class SitePair(object):
                 self.iceairhorizons_depth1 = df['depth1'].to_numpy(dtype=float)
                 self.iceairhorizons_depth2 = df['depth2'].to_numpy(dtype=float)
                 self.iceairhorizons_sigma = df['age_unc'].to_numpy(dtype=float)
+                try:
+                    self.iceairhorizons_phasing = df['phasing'].to_numpy(dtype=float)
+                except:
+                    self.iceairhorizons_phasing = np.zeros_like(self.iceairhorizons_depth1)
             else:
                 self.iceairhorizons_depth1 = np.array([])
                 self.iceairhorizons_depth2 = np.array([])
                 self.iceairhorizons_sigma = np.array([])
+                self.iceairhorizons_phasing = np.array([])
             self.iceairhorizons_correlation = np.diag(np.ones(np.size(self.iceairhorizons_depth1)))
 
         if self.site1.archive == 'icecore':
@@ -104,10 +119,15 @@ class SitePair(object):
                 self.airicehorizons_depth1 = df['depth1'].to_numpy(dtype=float)
                 self.airicehorizons_depth2 = df['depth2'].to_numpy(dtype=float)
                 self.airicehorizons_sigma = df['age_unc'].to_numpy(dtype=float)
+                try:
+                    self.airicehorizons_phasing = df['phasing'].to_numpy(dtype=float)
+                except:
+                    self.airicehorizons_phasing = np.zeros_like(self.airicehorizons_depth1)
             else:
                 self.airicehorizons_depth1 = np.array([])
                 self.airicehorizons_depth2 = np.array([])
                 self.airicehorizons_sigma = np.array([])
+                self.airicehorizons_phasing = np.array([])
             self.airicehorizons_correlation = np.diag(np.ones(np.size(self.airicehorizons_depth1)))
 
 
@@ -164,7 +184,8 @@ class SitePair(object):
 
         if np.size(self.iceicehorizons_depth1) > 0:
             resi_iceice = (self.site1.fct_age(self.iceicehorizons_depth1)-\
-                           self.site2.fct_age(self.iceicehorizons_depth2))/self.iceicehorizons_sigma
+                           self.site2.fct_age(self.iceicehorizons_depth2)-\
+                           self.iceicehorizons_phasing)/self.iceicehorizons_sigma
             if self.iceicehorizons_correlation_bool:
                 resi_iceice = lu_solve(self.iceicehorizons_lu_piv, resi_iceice)
             resi = [resi_iceice]
@@ -174,23 +195,24 @@ class SitePair(object):
         if self.site1.archive == 'icecore' and self.site2.archive == 'icecore' and \
             np.size(self.airairhorizons_depth1) > 0:
             resi_airair = (self.site1.fct_airage(self.airairhorizons_depth1)-\
-                          self.site2.fct_airage(self.airairhorizons_depth2))/\
-                          self.airairhorizons_sigma
+                           self.site2.fct_airage(self.airairhorizons_depth2)-\
+                           self.airairhorizons_phasing)/self.airairhorizons_sigma
             if self.airairhorizons_correlation_bool:
                 resi_airair = lu_solve(self.airairhorizons_lu_piv, resi_airair)
             resi.append(resi_airair)
 
         if self.site2.archive == 'icecore' and np.size(self.iceairhorizons_depth1) > 0:
             resi_iceair = (self.site1.fct_age(self.iceairhorizons_depth1)-\
-                          self.site2.fct_airage(self.iceairhorizons_depth2))/\
-                          self.iceairhorizons_sigma
+                          self.site2.fct_airage(self.iceairhorizons_depth2)-\
+                          self.iceairhorizons_phasing)/self.iceairhorizons_sigma
             if self.iceairhorizons_correlation_bool:
                 resi_iceair = lu_solve(self.iceairhorizons_lu_piv, resi_iceair)
             resi.append(resi_iceair)
 
         if self.site1.archive == 'icecore' and np.size(self.airicehorizons_depth1) > 0:
             resi_airice = (self.site1.fct_airage(self.airicehorizons_depth1)-\
-                           self.site2.fct_age(self.airicehorizons_depth2))/self.airicehorizons_sigma
+                           self.site2.fct_age(self.airicehorizons_depth2)-\
+                           self.airicehorizons_phasing)/self.airicehorizons_sigma
             if self.airicehorizons_correlation_bool:
                 resi_airice = lu_solve(self.airicehorizons_lu_piv, resi_airice)
             resi.append(resi_airice)
@@ -241,7 +263,7 @@ class SitePair(object):
 #            resi = [np.array([])]
         return np.concatenate(resi, axis=1)
 
-    def residuals_delta(self):
+    def residuals_delta(self): #FIXME: This is actually not finished!
         resi_iceice = (self.site1.fct_age_delta(self.iceicehorizons_depth1)-\
             self.site2.fct_age_delta(self.iceicehorizons_depth2))/self.iceicehorizons_sigma
         return resi_iceice
@@ -253,29 +275,42 @@ class SitePair(object):
             
             fig, ax = mpl.subplots()
             mpl.xlabel(self.site1.label+' '+self.site1.age_labelsp+'age ('+pccfg.age_unit+' '+pccfg.age_unit_ref+')')
-            mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age ('+pccfg.age_unit+' '+pccfg.age_unit_ref+')')
+            if self.iceicehorizons_phasing.any():
+                mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age + phasing ('+pccfg.age_unit+' '+pccfg.age_unit_ref+')')
+            else:
+                mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age ('+pccfg.age_unit+' '+pccfg.age_unit_ref+')')
             if np.size(self.iceicehorizons_depth1) > 0:
                 if pccfg.show_initial:
                     mpl.plot(self.site1.fct_age_init(self.iceicehorizons_depth1),
-                                 self.site2.fct_age_init(self.iceicehorizons_depth2),
-                                 color=pccfg.color_init, linestyle='', marker='o', markersize=2,
+                                 self.site2.fct_age_init(self.iceicehorizons_depth2)+\
+                                     self.iceicehorizons_phasing,
+                                 color=pccfg.color_init, linestyle='', marker='o', markersize=1,
                                  label="Initial")
                 mpl.plot(self.site1.fct_age_model(self.iceicehorizons_depth1),
-                             self.site2.fct_age_model(self.iceicehorizons_depth2),
-                             color=pccfg.color_mod, linestyle='', marker='o', markersize=2,
+                             self.site2.fct_age_model(self.iceicehorizons_depth2)+\
+                                 self.iceicehorizons_phasing,
+                             color=pccfg.color_mod, linestyle='', marker='o', markersize=1,
                              label="Prior")
                 mpl.errorbar(self.site1.fct_age(self.iceicehorizons_depth1),
-                             self.site2.fct_age(self.iceicehorizons_depth2), color=pccfg.color_opt,
+                             self.site2.fct_age(self.iceicehorizons_depth2)+\
+                                 self.iceicehorizons_phasing, color=pccfg.color_opt,
                              ecolor=pccfg.color_ci,
                              xerr=np.zeros(np.size(self.iceicehorizons_depth1)),
-                             linestyle='', marker='o', markersize=2,
+                             linestyle='', marker='o', markersize=1,
                              label="Posterior $\\pm\\sigma$")
                 xstart = self.site1.fct_age(self.iceicehorizons_depth1)-self.iceicehorizons_sigma/2
-                ystart = self.site2.fct_age(self.iceicehorizons_depth2)+self.iceicehorizons_sigma/2
+                ystart = self.site2.fct_age(self.iceicehorizons_depth2)+self.iceicehorizons_phasing+self.iceicehorizons_sigma/2
                 for i in range(np.size(self.iceicehorizons_depth1)):
                     mpl.arrow(xstart[i], ystart[i], self.iceicehorizons_sigma[i],
                               -self.iceicehorizons_sigma[i], color=pccfg.color_ci,
                               width=0.0, head_length=0.0, head_width=0.0)
+                # This is the phasing
+                # xstart = self.site1.fct_age(self.iceicehorizons_depth1)
+                # ystart = self.site2.fct_age(self.iceicehorizons_depth2)+self.iceicehorizons_phasing
+                # for i in range(np.size(self.iceicehorizons_depth1)):
+                #     mpl.arrow(xstart[i], ystart[i], 0., -self.iceicehorizons_phasing[i],
+                #               color=pccfg.color_opt, 
+                #               width=0.001, head_length=0.0, head_width=0.0)
             x_low, x_up, y_low, y_up = mpl.axis()
 #            x_low = self.site1.age_top
 #            y_low = self.site2.age_top
@@ -290,7 +325,8 @@ class SitePair(object):
                 mpl.close()
 
             resi = (self.site1.fct_age(self.iceicehorizons_depth1)-\
-                           self.site2.fct_age(self.iceicehorizons_depth2))/self.iceicehorizons_sigma
+                           self.site2.fct_age(self.iceicehorizons_depth2)-\
+                               self.iceicehorizons_phasing)/self.iceicehorizons_sigma
             for i in np.where(np.abs(resi)>pccfg.outlier_level)[0]:
                 print('Outlier in '+self.age_age_labelsp+'synchro link:', str(i+1)+"/"+str(len(resi)),
                       "at depth1:", self.iceicehorizons_depth1[i], 
@@ -319,34 +355,51 @@ class SitePair(object):
                 fig, ax = mpl.subplots()
                 mpl.xlabel(self.site1.label+' '+self.site1.age2_labelsp+'age ('+pccfg.age_unit+' '+
                            pccfg.age_unit_ref+')')
-                mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age ('+pccfg.age_unit+' '+
-                           pccfg.age_unit_ref+')')
+                if self.airairhorizons_phasing.any():
+                    mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age + phasing ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
+                else:
+                    mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
                 if np.size(self.airairhorizons_depth1) > 0:
                     if pccfg.show_initial:
                         mpl.plot(self.site1.fct_airage_init(self.airairhorizons_depth1),
-                                     self.site2.fct_airage_init(self.airairhorizons_depth2),
+                                     self.site2.fct_airage_init(self.airairhorizons_depth2)+\
+                                         self.airairhorizons_phasing,
                                      color=pccfg.color_init,
                                      linestyle='',
-                                     marker='o', markersize=2, label="Initial")
+                                     marker='o', markersize=1, label="Initial")
                     mpl.plot(self.site1.fct_airage_model(self.airairhorizons_depth1),
-                                 self.site2.fct_airage_model(self.airairhorizons_depth2),
+                                 self.site2.fct_airage_model(self.airairhorizons_depth2)+\
+                                     self.airairhorizons_phasing,
                                  color=pccfg.color_mod,
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Prior")
+                    # This is the posterior, the errorbar is fake, just for the legend
                     mpl.errorbar(self.site1.fct_airage(self.airairhorizons_depth1),
-                                 self.site2.fct_airage(self.airairhorizons_depth2),
+                                 self.site2.fct_airage(self.airairhorizons_depth2)+\
+                                     self.airairhorizons_phasing,
                                  color=pccfg.color_opt, ecolor=pccfg.color_ci,
                                  xerr=np.zeros_like(self.airairhorizons_sigma),
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Posterior $\\pm\\sigma$")
+                    # This is the actual error bar
                     xstart = self.site1.fct_airage(self.airairhorizons_depth1)-\
                                  self.airairhorizons_sigma/2
                     ystart = self.site2.fct_airage(self.airairhorizons_depth2)+\
+                                 self.airairhorizons_phasing+\
                                  self.airairhorizons_sigma/2
                     for i in range(np.size(self.airairhorizons_depth1)):
                         mpl.arrow(xstart[i], ystart[i], self.airairhorizons_sigma[i],
                                   -self.airairhorizons_sigma[i], color=pccfg.color_ci,
                                   width=0.0, head_length=0.0, head_width=0.0)
+                    # This is the phasing
+                    # xstart = self.site1.fct_airage(self.airairhorizons_depth1)
+                    # ystart = self.site2.fct_airage(self.airairhorizons_depth2)+self.airairhorizons_phasing
+                    # for i in range(np.size(self.airairhorizons_depth1)):
+                    #     mpl.arrow(xstart[i], ystart[i], 0., -self.airairhorizons_phasing[i],
+                    #               color=pccfg.color_opt, 
+                    #               width=0.001, head_length=0.0, head_width=0.0)
                 x_low, x_up, y_low, y_up = mpl.axis()
 #                x_low = self.site1.age_top
 #                y_low = self.site2.age_top
@@ -361,8 +414,10 @@ class SitePair(object):
                 if not pccfg.show_figures:
                     mpl.close()
 
+                # FIXME: this is already calculated in residuals, make a function
                 resi = (self.site1.fct_airage(self.airairhorizons_depth1)-\
-                               self.site2.fct_airage(self.airairhorizons_depth2))/self.airairhorizons_sigma
+                               self.site2.fct_airage(self.airairhorizons_depth2)-\
+                                   self.airairhorizons_phasing)/self.airairhorizons_sigma
                 for i in np.where(np.abs(resi)>pccfg.outlier_level)[0]:
                     print('Outlier in '+self.age2_age2_labelsp+'synchro link:', str(i+1)+"/"+str(len(resi)),
                           "at depth1:", self.airairhorizons_depth1[i], 
@@ -392,34 +447,49 @@ class SitePair(object):
                 fig, ax = mpl.subplots()
                 mpl.xlabel(self.site1.label+' '+self.site1.age_labelsp+'age ('+pccfg.age_unit+' '+
                            pccfg.age_unit_ref+')')
-                mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age ('+pccfg.age_unit+' '+
-                           pccfg.age_unit_ref+')')
+                if self.iceairhorizons_phasing.any():
+                    mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age + phasing ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
+                else:
+                    mpl.ylabel(self.site2.label+' '+self.site2.age2_labelsp+'age ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
                 if np.size(self.iceairhorizons_depth1) > 0:
                     if pccfg.show_initial:
                         mpl.plot(self.site1.fct_age_init(self.iceairhorizons_depth1),
-                                     self.site2.fct_airage_init(self.iceairhorizons_depth2),
+                                     self.site2.fct_airage_init(self.iceairhorizons_depth2)+\
+                                         self.iceairhorizons_phasing,
                                      color=pccfg.color_init,
                                      linestyle='',
-                                     marker='o', markersize=2, label="Initial")
+                                     marker='o', markersize=1, label="Initial")
                     mpl.plot(self.site1.fct_age_model(self.iceairhorizons_depth1),
-                                 self.site2.fct_airage_model(self.iceairhorizons_depth2),
+                                 self.site2.fct_airage_model(self.iceairhorizons_depth2)+\
+                                     self.iceairhorizons_phasing,
                                  color=pccfg.color_mod,
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Prior")
                     mpl.errorbar(self.site1.fct_age(self.iceairhorizons_depth1),
-                                 self.site2.fct_airage(self.iceairhorizons_depth2),
+                                 self.site2.fct_airage(self.iceairhorizons_depth2)+\
+                                     self.iceairhorizons_phasing,
                                  color=pccfg.color_opt, ecolor=pccfg.color_ci,
                                  xerr=np.zeros_like(self.iceairhorizons_sigma),
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Posterior $\\pm\\sigma$")
                     xstart = self.site1.fct_age(self.iceairhorizons_depth1)-\
                                  self.iceairhorizons_sigma/2
                     ystart = self.site2.fct_airage(self.iceairhorizons_depth2)+\
+                                 self.iceairhorizons_phasing+\
                                  self.iceairhorizons_sigma/2
                     for i in range(np.size(self.iceairhorizons_depth1)):
                         mpl.arrow(xstart[i], ystart[i], self.iceairhorizons_sigma[i],
                                   -self.iceairhorizons_sigma[i], color=pccfg.color_ci,
-                                  width=0.0, head_length=0.0, head_width=0.0)                    
+                                  width=0.0, head_length=0.0, head_width=0.0)
+                    # This is the phasing
+                    # xstart = self.site1.fct_age(self.iceairhorizons_depth1)
+                    # ystart = self.site2.fct_airage(self.iceairhorizons_depth2)+self.iceairhorizons_phasing
+                    # for i in range(np.size(self.iceairhorizons_depth1)):
+                    #     mpl.arrow(xstart[i], ystart[i], 0., -self.iceairhorizons_phasing[i],
+                    #               color=pccfg.color_opt, 
+                    #               width=0.001, head_length=0.0, head_width=0.0)
                 x_low, x_up, y_low, y_up = mpl.axis()
 #                x_low = self.site1.age_top
 #                y_low = self.site2.age_top
@@ -435,7 +505,8 @@ class SitePair(object):
                     mpl.close()
 
                 resi = (self.site1.fct_age(self.iceairhorizons_depth1)-\
-                              self.site2.fct_airage(self.iceairhorizons_depth2))/\
+                              self.site2.fct_airage(self.iceairhorizons_depth2)-\
+                                  self.iceairhorizons_phasing)/\
                               self.iceairhorizons_sigma
                 for i in np.where(np.abs(resi)>pccfg.outlier_level)[0]:
                     print('Outlier in '+self.age_age2_labelsp+'synchro link:', str(i+1)+"/"+str(len(resi)),
@@ -466,33 +537,48 @@ class SitePair(object):
                 fig, ax = mpl.subplots()
                 mpl.xlabel(self.site1.label+' '+self.site1.age2_labelsp+'age ('+pccfg.age_unit+' '+
                            pccfg.age_unit_ref+')')
-                mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age ('+pccfg.age_unit+' '+
-                           pccfg.age_unit_ref+')')
+                if self.airicehorizons_phasing.any():
+                    mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age + phasing ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
+                else:
+                    mpl.ylabel(self.site2.label+' '+self.site2.age_labelsp+'age ('+pccfg.age_unit+' '+
+                               pccfg.age_unit_ref+')')
                 if np.size(self.airicehorizons_depth1) > 0:
                     if pccfg.show_initial:
                         mpl.plot(self.site1.fct_airage_init(self.airicehorizons_depth1),
-                                     self.site2.fct_age_init(self.airicehorizons_depth2),
+                                     self.site2.fct_age_init(self.airicehorizons_depth2)+\
+                                         self.airicehorizons_phasing,
                                      color=pccfg.color_init,
-                                     linestyle='', marker='o', markersize=2, label="Initial")
+                                     linestyle='', marker='o', markersize=1, label="Initial")
                     mpl.plot(self.site1.fct_airage_model(self.airicehorizons_depth1),
-                                 self.site2.fct_age_model(self.airicehorizons_depth2),
+                                 self.site2.fct_age_model(self.airicehorizons_depth2)+\
+                                     self.airicehorizons_phasing,
                                  color=pccfg.color_mod,
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Prior")
                     mpl.errorbar(self.site1.fct_airage(self.airicehorizons_depth1),
-                                 self.site2.fct_age(self.airicehorizons_depth2),
+                                 self.site2.fct_age(self.airicehorizons_depth2)+\
+                                     self.airicehorizons_phasing,
                                  color=pccfg.color_opt, ecolor=pccfg.color_ci,
                                  xerr=np.zeros_like(self.airicehorizons_sigma),
-                                 linestyle='', marker='o', markersize=2,
+                                 linestyle='', marker='o', markersize=1,
                                  label="Posterior $\\pm\\sigma$")
                     xstart = self.site1.fct_airage(self.airicehorizons_depth1)-\
                                  self.airicehorizons_sigma/2
                     ystart = self.site2.fct_age(self.airicehorizons_depth2)+\
+                                 self.iceicehorizons_phasing+\
                                  self.airicehorizons_sigma/2
                     for i in range(np.size(self.airicehorizons_depth1)):
                         mpl.arrow(xstart[i], ystart[i], self.airicehorizons_sigma[i],
                                   -self.airicehorizons_sigma[i], color=pccfg.color_ci,
                                   width=0.0, head_length=0.0, head_width=0.0)
+                    # This is the phasing
+                    # xstart = self.site1.fct_airage(self.airicehorizons_depth1)
+                    # ystart = self.site2.fct_age(self.airicehorizons_depth2)+self.airicehorizons_phasing
+                    # for i in range(np.size(self.airicehorizons_depth1)):
+                    #     mpl.arrow(xstart[i], ystart[i], 0., -self.airicehorizons_phasing[i],
+                    #               color=pccfg.color_opt, 
+                    #               width=0.001, head_length=0.0, head_width=0.0)
                 x_low, x_up, y_low, y_up = mpl.axis()
 #                x_low = self.site1.age_top
 #                y_low = self.site2.age_top
@@ -507,7 +593,8 @@ class SitePair(object):
                     mpl.close()
                 
                 resi = (self.site1.fct_airage(self.airicehorizons_depth1)-\
-                               self.site2.fct_age(self.airicehorizons_depth2))/self.airicehorizons_sigma
+                               self.site2.fct_age(self.airicehorizons_depth2)-\
+                                   self.airicehorizons_phasing)/self.airicehorizons_sigma
                 for i in np.where(np.abs(resi)>pccfg.outlier_level)[0]:
                     print('Outlier in '+self.age2_age_labelsp+'synchro link:', str(i+1)+"/"+str(len(resi)),
                           "at depth1:", self.airicehorizons_depth1[i],
