@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import yaml
 
+
 trim_data = True
 
 if trim_data == True:
