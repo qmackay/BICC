@@ -28,7 +28,7 @@ input_dir = 'table_out/'
 load_path = os.path.join(input_dir, project+'_'+project_suffix+'.xlsx')
 loaded_excel_file = pd.read_excel(load_path, sheet_name=0)
 reference_sheet = pd.read_excel(load_path, sheet_name=1, usecols="G:Q")
-existing_error_sheet = pd.read_excel(load_path, sheet_name='Errors')
+existing_error_sheet = pd.read_excel(load_path, sheet_name='Legend, Stats, and References')
 
 try:
     existing_index_arr = existing_error_sheet['index'].to_numpy()
@@ -47,11 +47,11 @@ error_storage = existing_error_sheet.copy(deep=True)
 #saving function
 def save_excel():
     with pd.ExcelWriter(load_path, mode='a', if_sheet_exists='replace') as writer:
-        error_storage.to_excel(writer, sheet_name='Errors', index=False)
+        error_storage.to_excel(writer, sheet_name='Legend, Stats, and References', index=False)
 
     print('Styling Now')
     wb = load_workbook(load_path)
-    ws = wb['Errors']  # or wb['SheetName']
+    ws = wb['Legend, Stats, and References']  # or wb['SheetName']
 
     # column width
     for col in ws.columns:
