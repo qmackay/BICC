@@ -13,16 +13,16 @@ import yaml
 import os
 
 trim_data = True
-highlight_errors = False
-network_index = None  #incompatible with trim_data
+highlight_errors = True
+network_index = None #incompatible with trim_data
 
 if trim_data == True:
     # Leave FILTER_CORE as None to show the full network (default behavior).
-    FILTER_CORE: str | None = 'TALDICE'
+    FILTER_CORE: str | None = 'EDC'
     # Depth range on FILTER_CORE. Values are in raw depth units from tiepoint files.
     # Either order is accepted; the script will sort to [min, max].
-    FILTER_TOP_DEPTH: float | None = 1000.0
-    FILTER_BOTTOM_DEPTH: float | None = 1020.0
+    FILTER_TOP_DEPTH: float | None = 700
+    FILTER_BOTTOM_DEPTH: float | None = 710
     # If True, hide depth ranges that have no visible points after filtering.
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = True
     # If True, each core is independently normalized to the same vertical display range.
@@ -46,6 +46,7 @@ ERROR_NETWORK_EXCEL_PATH: str = "table_out/Antarctic_full.xlsx"
 ERROR_COLUMN_NAME: str = "Within Row Errors"
 NETWORK_MATCH_TOLERANCE_M: float = 0.15
 NETWORK_INDEX_DEPTH_PAD_M: float = 1.0
+TIEPOINT_MERGE_MARGIN_M: float = 0.15
 
 #set working directory
 os.chdir(Path(__file__).resolve().parent)
@@ -164,6 +165,68 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_tiepoints(root: Path, project: str) -> tuple[list[str], pd.DataFrame]:
+    def _merge_pair_like_many_col(
+        load_data: pd.DataFrame,
+        pair_name: str,
+        merge_margin: float,
+        num_files: int,
+    ) -> pd.DataFrame:
+        if load_data.empty:
+            return load_data
+
+        drop_rows: list[int] = []
+        drop_rows_merge: set[int] = set()
+        new_merged_rows: list[dict[str, object]] = []
+
+        for idx, row in load_data.iterrows():
+            mask1 = abs(row["depth1"] - load_data["depth1"]) <= merge_margin
+            mask1.at[idx] = False
+            mask2 = abs(row["depth2"] - load_data["depth2"]) <= merge_margin
+            mask2.at[idx] = False
+
+            close_points = load_data[mask1 & mask2]
+            close_idxs = load_data.index[mask1 & mask2]
+            if len(close_points) == 0:
+                continue
+
+            refs = [load_data.at[idx, "reference"]] + [load_data.at[i, "reference"] for i in close_idxs]
+            merged_ref = "; ".join(str(r) for r in refs if pd.notna(r))
+
+            depth1_vals = [load_data.at[idx, "depth1"]] + [load_data.at[i, "depth1"] for i in close_idxs]
+            merged_depth1 = float(np.mean(depth1_vals))
+            depth2_vals = [load_data.at[idx, "depth2"]] + [load_data.at[i, "depth2"] for i in close_idxs]
+            merged_depth2 = float(np.mean(depth2_vals))
+
+            new_merged_rows.append(
+                {
+                    "reference": merged_ref,
+                    "depth1": merged_depth1,
+                    "depth2": merged_depth2,
+                    "source_file": "merged",
+                }
+            )
+
+            drop_rows_merge.add(idx)
+            for i in close_idxs:
+                drop_rows.append(i)
+                if drop_rows.count(i) >= num_files:
+                    print(
+                        f"WARNING: Row {load_data.at[i, 'depth1']} | {load_data.at[i, 'depth2']} for {pair_name}. "
+                        f"Reference {load_data.at[i, 'reference']}."
+                    )
+                    print(
+                        f"Called by row {load_data.at[idx, 'depth1']} | {load_data.at[idx, 'depth2']} "
+                        f"from reference {load_data.at[idx, 'reference']}."
+                    )
+
+        drop_idx = set(drop_rows).union(drop_rows_merge)
+        merged_data = load_data.drop(index=drop_idx).reset_index(drop=True)
+        merged_df = pd.DataFrame(new_merged_rows)
+        merged_data = pd.concat([merged_data, merged_df], ignore_index=True)
+        merged_data.drop_duplicates(subset=["depth1", "depth2"], inplace=True)
+        merged_data = merged_data.sort_values(by=["depth1"]).reset_index(drop=True)
+        return merged_data
+
     with open(root / project / "parameters.yml", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
@@ -177,30 +240,50 @@ def load_tiepoints(root: Path, project: str) -> tuple[list[str], pd.DataFrame]:
         if not pair_dir.is_dir():
             continue
 
-        for txt in sorted(pair_dir.glob("*.txt")):
+        txt_files = list(pair_dir.glob("*.txt"))
+        if not txt_files:
+            continue
+
+        dfs: list[pd.DataFrame] = []
+        for txt in txt_files:
             df = pd.read_csv(txt, sep="\t", comment="#")
             if not {"depth1", "depth2"}.issubset(df.columns):
                 continue
+            if "reference" not in df.columns:
+                df["reference"] = "unknown"
+            df["source_file"] = txt.name
+            dfs.append(df[["depth1", "depth2", "reference", "source_file"]].copy())
 
-            if "reference" in df.columns:
-                refs = df["reference"]
-            else:
-                refs = pd.Series(["unknown"] * len(df))
+        if not dfs:
+            continue
 
-            for depth1, depth2, ref in zip(df["depth1"], df["depth2"], refs):
-                if pd.isna(depth1) or pd.isna(depth2):
-                    continue
-                records.append(
-                    {
-                        "pair": pair,
-                        "core_a": core_a,
-                        "core_b": core_b,
-                        "depth_a_raw": float(depth1),
-                        "depth_b_raw": float(depth2),
-                        "reference": str(ref),
-                        "source_file": txt.name,
-                    }
-                )
+        load_data = pd.concat(dfs, ignore_index=True)
+        original_rows = len(load_data)
+        load_data = _merge_pair_like_many_col(
+            load_data=load_data,
+            pair_name=pair,
+            merge_margin=TIEPOINT_MERGE_MARGIN_M,
+            num_files=len(dfs),
+        )
+        print(
+            f"Processed pair {pair}, total points after merging: {len(load_data)}, "
+            f"({original_rows} original total rows)"
+        )
+
+        for row in load_data.itertuples(index=False):
+            if pd.isna(row.depth1) or pd.isna(row.depth2):
+                continue
+            records.append(
+                {
+                    "pair": pair,
+                    "core_a": core_a,
+                    "core_b": core_b,
+                    "depth_a_raw": float(row.depth1),
+                    "depth_b_raw": float(row.depth2),
+                    "reference": str(row.reference),
+                    "source_file": str(row.source_file),
+                }
+            )
 
     tie_df = pd.DataFrame(records)
     if tie_df.empty:
@@ -405,21 +488,56 @@ def filter_tiepoints_for_core_depth(
     depth_min = min(top_depth, bottom_depth)
     depth_max = max(top_depth, bottom_depth)
 
-    mask_core_a = (
+    # Seed ties: only those touching filter_core within the chosen filter_core range.
+    seed_mask_core_a = (
         (tie_df["core_a"] == filter_core)
         & (tie_df["depth_a_raw"] >= depth_min)
         & (tie_df["depth_a_raw"] <= depth_max)
     )
-    mask_core_b = (
+    seed_mask_core_b = (
         (tie_df["core_b"] == filter_core)
         & (tie_df["depth_b_raw"] >= depth_min)
         & (tie_df["depth_b_raw"] <= depth_max)
     )
-    filtered = tie_df[mask_core_a | mask_core_b].copy()
+    seed = tie_df[seed_mask_core_a | seed_mask_core_b].copy()
+    if seed.empty:
+        note = (
+            f"Filtered to core={filter_core}, depth range=[{depth_min}, {depth_max}] "
+            "but found no seed ties."
+        )
+        return seed, note, True
+
+    # Build per-core depth windows from ties that include filter_core.
+    core_depth_samples: dict[str, list[float]] = {filter_core: [depth_min, depth_max]}
+    for row in seed.itertuples(index=False):
+        if row.core_a == filter_core:
+            other_core = row.core_b
+            other_depth = row.depth_b_raw
+        else:
+            other_core = row.core_a
+            other_depth = row.depth_a_raw
+        core_depth_samples.setdefault(other_core, []).append(float(other_depth))
+
+    core_ranges: dict[str, tuple[float, float]] = {}
+    for core, depths in core_depth_samples.items():
+        core_ranges[core] = (float(np.nanmin(depths)), float(np.nanmax(depths)))
+
+    def _row_in_mapped_ranges(row: pd.Series) -> bool:
+        if row["core_a"] not in core_ranges or row["core_b"] not in core_ranges:
+            return False
+        a_min, a_max = core_ranges[row["core_a"]]
+        b_min, b_max = core_ranges[row["core_b"]]
+        return (
+            (a_min <= row["depth_a_raw"] <= a_max)
+            and (b_min <= row["depth_b_raw"] <= b_max)
+        )
+
+    mapped_mask = tie_df.apply(_row_in_mapped_ranges, axis=1)
+    filtered = tie_df[mapped_mask].copy()
 
     note = (
-        f"Filtered to core={filter_core}, depth range=[{depth_min}, {depth_max}] "
-        f"with {len(filtered)} matching tiepoints."
+        f"Filtered via core-mapped ranges from {filter_core} [{depth_min}, {depth_max}] "
+        f"across {len(core_ranges)} cores; {len(filtered)} ties in view."
     )
     return filtered, note, True
 
