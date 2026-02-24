@@ -13,15 +13,16 @@ import yaml
 import os
 
 trim_data = True
-highlight_errors = True
+highlight_errors = False
+network_index = None  #incompatible with trim_data
 
 if trim_data == True:
     # Leave FILTER_CORE as None to show the full network (default behavior).
-    FILTER_CORE: str | None = 'EDC'
+    FILTER_CORE: str | None = 'TALDICE'
     # Depth range on FILTER_CORE. Values are in raw depth units from tiepoint files.
     # Either order is accepted; the script will sort to [min, max].
-    FILTER_TOP_DEPTH: float | None = 700.0
-    FILTER_BOTTOM_DEPTH: float | None = 710.0
+    FILTER_TOP_DEPTH: float | None = 1000.0
+    FILTER_BOTTOM_DEPTH: float | None = 1020.0
     # If True, hide depth ranges that have no visible points after filtering.
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = True
     # If True, each core is independently normalized to the same vertical display range.
@@ -38,12 +39,13 @@ else:
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = False
     PER_CORE_DEPTH_SCALE: bool = False
     HIGHLIGHT_ERROR_NETWORKS: bool = highlight_errors
-    NETWORK_INDEX_FILTER: str | None = None
+    NETWORK_INDEX_FILTER: str | None = network_index
     
 # Error-network highlighting settings
 ERROR_NETWORK_EXCEL_PATH: str = "table_out/Antarctic_full.xlsx"
 ERROR_COLUMN_NAME: str = "Within Row Errors"
 NETWORK_MATCH_TOLERANCE_M: float = 0.15
+NETWORK_INDEX_DEPTH_PAD_M: float = 1.0
 
 #set working directory
 os.chdir(Path(__file__).resolve().parent)
@@ -560,6 +562,7 @@ def main() -> None:
         excel_path = root / excel_path
 
     network_index_note = "Network index: all"
+    network_index_depth_window: tuple[float, float] | None = None
     if args.network_index is not None and str(args.network_index).strip() != "":
         selected_network = _collect_network_by_index_from_excel(
             excel_path=excel_path,
@@ -580,6 +583,21 @@ def main() -> None:
             raise ValueError(
                 f'Network Index="{args.network_index}" matched no ties in the current filtered view.'
             )
+        network_depths = [d for depths in selected_network.values() for d in depths]
+        if network_depths:
+            depth_low = min(network_depths) - NETWORK_INDEX_DEPTH_PAD_M
+            depth_high = max(network_depths) + NETWORK_INDEX_DEPTH_PAD_M
+            network_index_depth_window = (depth_low, depth_high)
+            network_range_mask = (
+                tie_df_view["depth_a_raw"].between(depth_low, depth_high)
+                & tie_df_view["depth_b_raw"].between(depth_low, depth_high)
+            )
+            tie_df_view = tie_df_view[network_range_mask].copy()
+            if tie_df_view.empty:
+                raise ValueError(
+                    f'Network Index="{args.network_index}" has no ties inside padded depth window '
+                    f'[{depth_low:.3f}, {depth_high:.3f}].'
+                )
         network_index_note = f'Network index: {args.network_index}'
 
     view_depth_min = float(
@@ -588,7 +606,9 @@ def main() -> None:
     view_depth_max = float(
         np.nanmax(np.concatenate([tie_df_view["depth_a_raw"].to_numpy(), tie_df_view["depth_b_raw"].to_numpy()]))
     )
-    if filter_active and args.crop_unused_depth:
+    if network_index_depth_window is not None:
+        z_bounds_raw = network_index_depth_window
+    elif filter_active and args.crop_unused_depth:
         z_bounds_raw = (view_depth_min, view_depth_max)
     else:
         z_bounds_raw = (full_depth_min, full_depth_max)
@@ -666,6 +686,7 @@ def main() -> None:
         f"per_core_depth_scale={args.per_core_depth_scale}, "
         f"highlight_error_networks={args.highlight_error_networks}, "
         f"network_index={args.network_index}, "
+        f"network_index_depth_window={network_index_depth_window}, "
         f"error_networks={error_network_count}, "
         f"highlighted_ties={highlighted_count}"
     )
