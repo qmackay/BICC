@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse
 import itertools
 from pathlib import Path
 
@@ -44,124 +43,21 @@ else:
 # Error-network highlighting settings
 ERROR_NETWORK_EXCEL_PATH: str = "table_out/Antarctic_full.xlsx"
 ERROR_COLUMN_NAME: str = "Within Row Errors"
-NETWORK_MATCH_TOLERANCE_M: float = 0.15
 NETWORK_INDEX_DEPTH_PAD_M: float = 1.0
-TIEPOINT_MERGE_MARGIN_M: float = 0.15
+MATCH_TOLERANCE_M: float = 0.15
+
+# Plot/output settings (formerly CLI options)
+PROJECT: str = "Antarctic"
+ROOT_PATH: str = "/Users/quinnmackay/Documents/GitHub/BICC/Antarctic Chronology Accuracy Project"
+OUTPUT_DIR: str = "table_out"
+RADIUS_MULTIPLIER: float = 4.0
+MIN_RADIUS: float = 20.0
+Z_STRETCH: float = 3.0
+ASPECT_Z: float = 2.5
+SHOW_INLINE: bool = False
 
 #set working directory
 os.chdir(Path(__file__).resolve().parent)
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Build an interactive 3D tiepoint network for all ice-core pairs."
-    )
-    parser.add_argument(
-        "--project",
-        default="Antarctic",
-        help="Project folder name (default: Antarctic).",
-    )
-    parser.add_argument(
-        "--root",
-        default="/Users/quinnmackay/Documents/GitHub/BICC/Antarctic Chronology Accuracy Project",
-        help="Repository root path that contains the project folder.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        default="table_out",
-        help="Directory where the HTML visualization will be written.",
-    )
-    parser.add_argument(
-        "--radius-multiplier",
-        type=float,
-        default=4.0,
-        help="Core separation multiplier. Higher values spread columns farther apart.",
-    )
-    parser.add_argument(
-        "--min-radius",
-        type=float,
-        default=20.0,
-        help="Minimum radius for core layout circle.",
-    )
-    parser.add_argument(
-        "--z-stretch",
-        type=float,
-        default=3.0,
-        help="Depth stretch factor for visualization (raw depth is preserved in hover text).",
-    )
-    parser.add_argument(
-        "--aspect-z",
-        type=float,
-        default=2.5,
-        help="Z axis aspect ratio factor for 3D camera.",
-    )
-    parser.add_argument(
-        "--show",
-        action="store_true",
-        help="Try to open an interactive renderer in addition to writing HTML.",
-    )
-    parser.add_argument(
-        "--filter-core",
-        default=FILTER_CORE,
-        help="Core to filter by depth range (e.g., EDC). Leave unset to show all tiepoints.",
-    )
-    parser.add_argument(
-        "--filter-top-depth",
-        type=float,
-        default=FILTER_TOP_DEPTH,
-        help="Top depth bound for filter core (raw depth units).",
-    )
-    parser.add_argument(
-        "--filter-bottom-depth",
-        type=float,
-        default=FILTER_BOTTOM_DEPTH,
-        help="Bottom depth bound for filter core (raw depth units).",
-    )
-    parser.add_argument(
-        "--crop-unused-depth",
-        action=argparse.BooleanOptionalAction,
-        default=CROP_UNUSED_DEPTH_AFTER_FILTER,
-        help=(
-            "When filtered, crop z-axis to only the visible depth span. "
-            "Use --no-crop-unused-depth to keep full-depth range."
-        ),
-    )
-    parser.add_argument(
-        "--per-core-depth-scale",
-        action=argparse.BooleanOptionalAction,
-        default=PER_CORE_DEPTH_SCALE,
-        help=(
-            "Use separate normalized depth scaling per core so columns are parallel. "
-            "Use --no-per-core-depth-scale for global raw-depth scaling."
-        ),
-    )
-    parser.add_argument(
-        "--highlight-error-networks",
-        action=argparse.BooleanOptionalAction,
-        default=HIGHLIGHT_ERROR_NETWORKS,
-        help="Highlight tie segments belonging to any network row with Within Row Errors.",
-    )
-    parser.add_argument(
-        "--error-network-excel",
-        default=ERROR_NETWORK_EXCEL_PATH,
-        help="Excel file with network rows (e.g., table_out/Antarctic_full.xlsx).",
-    )
-    parser.add_argument(
-        "--error-column-name",
-        default=ERROR_COLUMN_NAME,
-        help="Column name used to flag network errors in the Excel file.",
-    )
-    parser.add_argument(
-        "--network-match-tolerance",
-        type=float,
-        default=NETWORK_MATCH_TOLERANCE_M,
-        help="Depth tolerance (m) used to map network rows back to raw tie segments.",
-    )
-    parser.add_argument(
-        "--network-index",
-        default=NETWORK_INDEX_FILTER,
-        help='Optional Excel "Index" value. If set, only ties in that network are shown.',
-    )
-    return parser.parse_args()
 
 
 def load_tiepoints(root: Path, project: str) -> tuple[list[str], pd.DataFrame]:
@@ -262,7 +158,7 @@ def load_tiepoints(root: Path, project: str) -> tuple[list[str], pd.DataFrame]:
         load_data = _merge_pair_like_many_col(
             load_data=load_data,
             pair_name=pair,
-            merge_margin=TIEPOINT_MERGE_MARGIN_M,
+            merge_margin=MATCH_TOLERANCE_M,
             num_files=len(dfs),
         )
         print(
@@ -651,12 +547,11 @@ def _collect_network_by_index_from_excel(
 
 
 def main() -> None:
-    args = parse_args()
-    root = Path(args.root)
-    output_dir = Path(args.output_dir)
+    root = Path(ROOT_PATH)
+    output_dir = Path(OUTPUT_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cores, tie_df = load_tiepoints(root=root, project=args.project)
+    cores, tie_df = load_tiepoints(root=root, project=PROJECT)
     full_depth_min = float(
         np.nanmin(np.concatenate([tie_df["depth_a_raw"].to_numpy(), tie_df["depth_b_raw"].to_numpy()]))
     )
@@ -666,40 +561,40 @@ def main() -> None:
 
     tie_df_view, filter_note, filter_active = filter_tiepoints_for_core_depth(
         tie_df=tie_df,
-        filter_core=args.filter_core,
-        top_depth=args.filter_top_depth,
-        bottom_depth=args.filter_bottom_depth,
+        filter_core=FILTER_CORE,
+        top_depth=FILTER_TOP_DEPTH,
+        bottom_depth=FILTER_BOTTOM_DEPTH,
     )
     if tie_df_view.empty:
         raise ValueError(
             "Filter produced zero tiepoints. Adjust filter core/depth bounds or disable filtering."
         )
 
-    excel_path = Path(args.error_network_excel)
+    excel_path = Path(ERROR_NETWORK_EXCEL_PATH)
     if not excel_path.is_absolute():
         excel_path = root / excel_path
 
     network_index_note = "Network index: all"
     network_index_depth_window: tuple[float, float] | None = None
-    if args.network_index is not None and str(args.network_index).strip() != "":
+    if NETWORK_INDEX_FILTER is not None and str(NETWORK_INDEX_FILTER).strip() != "":
         selected_network = _collect_network_by_index_from_excel(
             excel_path=excel_path,
             cores=cores,
-            network_index=str(args.network_index),
+            network_index=str(NETWORK_INDEX_FILTER),
         )
         if selected_network is None:
             raise ValueError(
-                f'No valid network found for Index="{args.network_index}" in {excel_path}.'
+                f'No valid network found for Index="{NETWORK_INDEX_FILTER}" in {excel_path}.'
             )
         selected_mask = _match_ties_to_error_networks(
             tie_df=tie_df_view,
             error_networks=[selected_network],
-            tolerance_m=args.network_match_tolerance,
+            tolerance_m=MATCH_TOLERANCE_M,
         )
         tie_df_view = tie_df_view[selected_mask].copy()
         if tie_df_view.empty:
             raise ValueError(
-                f'Network Index="{args.network_index}" matched no ties in the current filtered view.'
+                f'Network Index="{NETWORK_INDEX_FILTER}" matched no ties in the current filtered view.'
             )
         network_depths = [d for depths in selected_network.values() for d in depths]
         if network_depths:
@@ -713,10 +608,10 @@ def main() -> None:
             tie_df_view = tie_df_view[network_range_mask].copy()
             if tie_df_view.empty:
                 raise ValueError(
-                    f'Network Index="{args.network_index}" has no ties inside padded depth window '
+                    f'Network Index="{NETWORK_INDEX_FILTER}" has no ties inside padded depth window '
                     f'[{depth_low:.3f}, {depth_high:.3f}].'
                 )
-        network_index_note = f'Network index: {args.network_index}'
+        network_index_note = f'Network index: {NETWORK_INDEX_FILTER}'
 
     view_depth_min = float(
         np.nanmin(np.concatenate([tie_df_view["depth_a_raw"].to_numpy(), tie_df_view["depth_b_raw"].to_numpy()]))
@@ -726,7 +621,7 @@ def main() -> None:
     )
     if network_index_depth_window is not None:
         z_bounds_raw = network_index_depth_window
-    elif filter_active and args.crop_unused_depth:
+    elif filter_active and CROP_UNUSED_DEPTH_AFTER_FILTER:
         z_bounds_raw = (view_depth_min, view_depth_max)
     else:
         z_bounds_raw = (full_depth_min, full_depth_max)
@@ -735,56 +630,56 @@ def main() -> None:
     tie_df_view["error_network"] = False
     highlighted_count = 0
     error_network_count = 0
-    if args.highlight_error_networks:
+    if HIGHLIGHT_ERROR_NETWORKS:
         error_networks = _collect_error_networks_from_excel(
             excel_path=excel_path,
             cores=cores,
-            error_column_name=args.error_column_name,
+            error_column_name=ERROR_COLUMN_NAME,
         )
         error_network_count = len(error_networks)
         if error_networks:
             tie_df_view["error_network"] = _match_ties_to_error_networks(
                 tie_df=tie_df_view,
                 error_networks=error_networks,
-                tolerance_m=args.network_match_tolerance,
+                tolerance_m=MATCH_TOLERANCE_M,
             )
             highlighted_count = int(tie_df_view["error_network"].sum())
 
-    filter_core_display = args.filter_core if filter_active else "None (full network)"
+    filter_core_display = FILTER_CORE if filter_active else "None (full network)"
     top_display = (
-        f"{min(args.filter_top_depth, args.filter_bottom_depth):.3f}"
-        if filter_active and args.filter_top_depth is not None and args.filter_bottom_depth is not None
+        f"{min(FILTER_TOP_DEPTH, FILTER_BOTTOM_DEPTH):.3f}"
+        if filter_active and FILTER_TOP_DEPTH is not None and FILTER_BOTTOM_DEPTH is not None
         else "N/A"
     )
     bottom_display = (
-        f"{max(args.filter_top_depth, args.filter_bottom_depth):.3f}"
-        if filter_active and args.filter_top_depth is not None and args.filter_bottom_depth is not None
+        f"{max(FILTER_TOP_DEPTH, FILTER_BOTTOM_DEPTH):.3f}"
+        if filter_active and FILTER_TOP_DEPTH is not None and FILTER_BOTTOM_DEPTH is not None
         else "N/A"
     )
     parameter_summary_text = (
         f"Filter core: {filter_core_display} | "
         f"Depth top: {top_display} | "
         f"Depth bottom: {bottom_display} | "
-        f"Cropped: {args.crop_unused_depth} | "
-        f"Per-core depth scales: {args.per_core_depth_scale} | "
-        f"Error highlight: {args.highlight_error_networks} | "
+        f"Cropped: {CROP_UNUSED_DEPTH_AFTER_FILTER} | "
+        f"Per-core depth scales: {PER_CORE_DEPTH_SCALE} | "
+        f"Error highlight: {HIGHLIGHT_ERROR_NETWORKS} | "
         f"{network_index_note}"
     )
 
     fig = build_figure(
         cores=cores,
         tie_df=tie_df_view,
-        project=args.project,
-        radius_multiplier=args.radius_multiplier,
-        min_radius=args.min_radius,
-        z_stretch=args.z_stretch,
-        aspect_z=args.aspect_z,
+        project=PROJECT,
+        radius_multiplier=RADIUS_MULTIPLIER,
+        min_radius=MIN_RADIUS,
+        z_stretch=Z_STRETCH,
+        aspect_z=ASPECT_Z,
         z_bounds_raw=z_bounds_raw,
-        per_core_depth_scale=args.per_core_depth_scale,
+        per_core_depth_scale=PER_CORE_DEPTH_SCALE,
         parameter_summary_text=parameter_summary_text,
     )
 
-    out_html = output_dir / f"{args.project}_3d_tiepoint_network.html"
+    out_html = output_dir / f"{PROJECT}_3d_tiepoint_network.html"
     fig.write_html(str(out_html), include_plotlyjs="cdn")
 
     print(
@@ -796,20 +691,20 @@ def main() -> None:
     print(filter_note)
     print(
         "Display settings: "
-        f"radius_multiplier={args.radius_multiplier}, "
-        f"min_radius={args.min_radius}, "
-        f"z_stretch={args.z_stretch}, "
-        f"aspect_z={args.aspect_z}, "
-        f"crop_unused_depth={args.crop_unused_depth}, "
-        f"per_core_depth_scale={args.per_core_depth_scale}, "
-        f"highlight_error_networks={args.highlight_error_networks}, "
-        f"network_index={args.network_index}, "
+        f"radius_multiplier={RADIUS_MULTIPLIER}, "
+        f"min_radius={MIN_RADIUS}, "
+        f"z_stretch={Z_STRETCH}, "
+        f"aspect_z={ASPECT_Z}, "
+        f"crop_unused_depth={CROP_UNUSED_DEPTH_AFTER_FILTER}, "
+        f"per_core_depth_scale={PER_CORE_DEPTH_SCALE}, "
+        f"highlight_error_networks={HIGHLIGHT_ERROR_NETWORKS}, "
+        f"network_index={NETWORK_INDEX_FILTER}, "
         f"network_index_depth_window={network_index_depth_window}, "
         f"error_networks={error_network_count}, "
         f"highlighted_ties={highlighted_count}"
     )
 
-    if args.show:
+    if SHOW_INLINE:
         try:
             pio.show(fig)
         except Exception as exc:  # noqa: BLE001
