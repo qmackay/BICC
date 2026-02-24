@@ -10,30 +10,43 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 import yaml
-
+import os
 
 trim_data = True
+highlight_errors = True
 
 if trim_data == True:
     # Leave FILTER_CORE as None to show the full network (default behavior).
-    FILTER_CORE: str | None = 'DF'
+    FILTER_CORE: str | None = 'EDC'
     # Depth range on FILTER_CORE. Values are in raw depth units from tiepoint files.
     # Either order is accepted; the script will sort to [min, max].
-    FILTER_TOP_DEPTH: float | None = 2000.0
-    FILTER_BOTTOM_DEPTH: float | None = 2020.0
+    FILTER_TOP_DEPTH: float | None = 700.0
+    FILTER_BOTTOM_DEPTH: float | None = 710.0
     # If True, hide depth ranges that have no visible points after filtering.
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = True
     # If True, each core is independently normalized to the same vertical display range.
     # Hover values remain in raw depth units.
     PER_CORE_DEPTH_SCALE: bool = True
+    # If True, highlight all tie segments belonging to networks with within-row errors.
+    HIGHLIGHT_ERROR_NETWORKS: bool = highlight_errors
+    # Optional: set to an Excel "Index" value to show only ties in that one network.
+    NETWORK_INDEX_FILTER: str | None = None
 else:
     FILTER_CORE: str | None = None
     FILTER_TOP_DEPTH: float | None = None
     FILTER_BOTTOM_DEPTH: float | None = None
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = False
     PER_CORE_DEPTH_SCALE: bool = False
+    HIGHLIGHT_ERROR_NETWORKS: bool = highlight_errors
+    NETWORK_INDEX_FILTER: str | None = None
     
+# Error-network highlighting settings
+ERROR_NETWORK_EXCEL_PATH: str = "table_out/Antarctic_full.xlsx"
+ERROR_COLUMN_NAME: str = "Within Row Errors"
+NETWORK_MATCH_TOLERANCE_M: float = 0.15
 
+#set working directory
+os.chdir(Path(__file__).resolve().parent)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -117,6 +130,33 @@ def parse_args() -> argparse.Namespace:
             "Use separate normalized depth scaling per core so columns are parallel. "
             "Use --no-per-core-depth-scale for global raw-depth scaling."
         ),
+    )
+    parser.add_argument(
+        "--highlight-error-networks",
+        action=argparse.BooleanOptionalAction,
+        default=HIGHLIGHT_ERROR_NETWORKS,
+        help="Highlight tie segments belonging to any network row with Within Row Errors.",
+    )
+    parser.add_argument(
+        "--error-network-excel",
+        default=ERROR_NETWORK_EXCEL_PATH,
+        help="Excel file with network rows (e.g., table_out/Antarctic_full.xlsx).",
+    )
+    parser.add_argument(
+        "--error-column-name",
+        default=ERROR_COLUMN_NAME,
+        help="Column name used to flag network errors in the Excel file.",
+    )
+    parser.add_argument(
+        "--network-match-tolerance",
+        type=float,
+        default=NETWORK_MATCH_TOLERANCE_M,
+        help="Depth tolerance (m) used to map network rows back to raw tie segments.",
+    )
+    parser.add_argument(
+        "--network-index",
+        default=NETWORK_INDEX_FILTER,
+        help='Optional Excel "Index" value. If set, only ties in that network are shown.',
     )
     return parser.parse_args()
 
@@ -244,6 +284,10 @@ def build_figure(
         ys: list[float | None] = []
         zs: list[float | None] = []
         hover_text: list[str | None] = []
+        err_xs: list[float | None] = []
+        err_ys: list[float | None] = []
+        err_zs: list[float | None] = []
+        err_hover: list[str | None] = []
 
         for row in grp.itertuples(index=False):
             xa, ya = core_xy[row.core_a]
@@ -262,6 +306,12 @@ def build_figure(
                 f"Source: {row.source_file}"
             )
             hover_text.extend([tip, tip, None])
+            if bool(getattr(row, "error_network", False)):
+                err_xs.extend([xa, xb, None])
+                err_ys.extend([ya, yb, None])
+                err_zs.extend([depth_a_plot, depth_b_plot, None])
+                err_tip = tip + "<br><b>Error network: Yes</b>"
+                err_hover.extend([err_tip, err_tip, None])
 
         fig.add_trace(
             go.Scatter3d(
@@ -275,6 +325,19 @@ def build_figure(
                 hoverinfo="text",
             )
         )
+        if err_xs:
+            fig.add_trace(
+                go.Scatter3d(
+                    x=err_xs,
+                    y=err_ys,
+                    z=err_zs,
+                    mode="lines",
+                    line=dict(width=7, color="red"),
+                    name=f"{pair} (error networks)",
+                    hovertext=err_hover,
+                    hoverinfo="text",
+                )
+            )
 
     z_label_divisor = z_stretch if abs(z_stretch) > 1e-12 else 1.0
     if trim_data is False:
@@ -359,6 +422,114 @@ def filter_tiepoints_for_core_depth(
     return filtered, note, True
 
 
+def _collect_error_networks_from_excel(
+    excel_path: Path,
+    cores: list[str],
+    error_column_name: str,
+) -> list[dict[str, list[float]]]:
+    if not excel_path.is_file():
+        return []
+
+    df = pd.read_excel(excel_path, sheet_name=0)
+    if error_column_name not in df.columns:
+        return []
+
+    core_columns = [col for col in df.columns if str(col).split(".")[0] in cores]
+    if not core_columns:
+        return []
+
+    error_rows = df[
+        df[error_column_name].notna()
+        & (df[error_column_name].astype(str).str.strip() != "")
+    ]
+    networks: list[dict[str, list[float]]] = []
+    for _, row in error_rows.iterrows():
+        core_depths: dict[str, list[float]] = {}
+        for col in core_columns:
+            base_core = str(col).split(".")[0]
+            value = row[col]
+            if pd.isna(value):
+                continue
+            core_depths.setdefault(base_core, []).append(float(value))
+        if len(core_depths) >= 2:
+            networks.append(core_depths)
+    return networks
+
+
+def _match_ties_to_error_networks(
+    tie_df: pd.DataFrame,
+    error_networks: list[dict[str, list[float]]],
+    tolerance_m: float,
+) -> pd.Series:
+    if not error_networks:
+        return pd.Series(False, index=tie_df.index)
+
+    flags = np.zeros(len(tie_df), dtype=bool)
+    for i, row in enumerate(tie_df.itertuples(index=False)):
+        for network in error_networks:
+            a_depths = network.get(row.core_a)
+            if not a_depths:
+                continue
+            b_depths = network.get(row.core_b)
+            if not b_depths:
+                continue
+            a_hit = np.any(np.abs(np.array(a_depths) - row.depth_a_raw) <= tolerance_m)
+            if not a_hit:
+                continue
+            b_hit = np.any(np.abs(np.array(b_depths) - row.depth_b_raw) <= tolerance_m)
+            if b_hit:
+                flags[i] = True
+                break
+
+    return pd.Series(flags, index=tie_df.index)
+
+
+def _collect_network_by_index_from_excel(
+    excel_path: Path,
+    cores: list[str],
+    network_index: str | None,
+) -> dict[str, list[float]] | None:
+    if network_index is None:
+        return None
+    if not excel_path.is_file():
+        return None
+
+    df = pd.read_excel(excel_path, sheet_name=0)
+    if "Index" not in df.columns:
+        return None
+
+    core_columns = [col for col in df.columns if str(col).split(".")[0] in cores]
+    if not core_columns:
+        return None
+
+    target = str(network_index).strip()
+    index_as_str = df["Index"].astype(str).str.strip()
+    selected = df[index_as_str == target]
+    if selected.empty:
+        try:
+            target_num = float(target)
+            index_num = pd.to_numeric(df["Index"], errors="coerce")
+            selected = df[(index_num - target_num).abs() <= 1e-9]
+        except Exception:  # noqa: BLE001
+            selected = df.iloc[0:0]
+
+    if selected.empty:
+        return None
+
+    row = selected.iloc[0]
+    core_depths: dict[str, list[float]] = {}
+    for col in core_columns:
+        base_core = str(col).split(".")[0]
+        value = row[col]
+        if pd.isna(value):
+            continue
+        core_depths.setdefault(base_core, []).append(float(value))
+
+    if len(core_depths) < 2:
+        return None
+    return core_depths
+
+
 def main() -> None:
     args = parse_args()
     root = Path(args.root)
@@ -384,6 +555,33 @@ def main() -> None:
             "Filter produced zero tiepoints. Adjust filter core/depth bounds or disable filtering."
         )
 
+    excel_path = Path(args.error_network_excel)
+    if not excel_path.is_absolute():
+        excel_path = root / excel_path
+
+    network_index_note = "Network index: all"
+    if args.network_index is not None and str(args.network_index).strip() != "":
+        selected_network = _collect_network_by_index_from_excel(
+            excel_path=excel_path,
+            cores=cores,
+            network_index=str(args.network_index),
+        )
+        if selected_network is None:
+            raise ValueError(
+                f'No valid network found for Index="{args.network_index}" in {excel_path}.'
+            )
+        selected_mask = _match_ties_to_error_networks(
+            tie_df=tie_df_view,
+            error_networks=[selected_network],
+            tolerance_m=args.network_match_tolerance,
+        )
+        tie_df_view = tie_df_view[selected_mask].copy()
+        if tie_df_view.empty:
+            raise ValueError(
+                f'Network Index="{args.network_index}" matched no ties in the current filtered view.'
+            )
+        network_index_note = f'Network index: {args.network_index}'
+
     view_depth_min = float(
         np.nanmin(np.concatenate([tie_df_view["depth_a_raw"].to_numpy(), tie_df_view["depth_b_raw"].to_numpy()]))
     )
@@ -394,6 +592,25 @@ def main() -> None:
         z_bounds_raw = (view_depth_min, view_depth_max)
     else:
         z_bounds_raw = (full_depth_min, full_depth_max)
+
+    tie_df_view = tie_df_view.copy()
+    tie_df_view["error_network"] = False
+    highlighted_count = 0
+    error_network_count = 0
+    if args.highlight_error_networks:
+        error_networks = _collect_error_networks_from_excel(
+            excel_path=excel_path,
+            cores=cores,
+            error_column_name=args.error_column_name,
+        )
+        error_network_count = len(error_networks)
+        if error_networks:
+            tie_df_view["error_network"] = _match_ties_to_error_networks(
+                tie_df=tie_df_view,
+                error_networks=error_networks,
+                tolerance_m=args.network_match_tolerance,
+            )
+            highlighted_count = int(tie_df_view["error_network"].sum())
 
     filter_core_display = args.filter_core if filter_active else "None (full network)"
     top_display = (
@@ -411,7 +628,9 @@ def main() -> None:
         f"Depth top: {top_display} | "
         f"Depth bottom: {bottom_display} | "
         f"Cropped: {args.crop_unused_depth} | "
-        f"Per-core depth scales: {args.per_core_depth_scale}"
+        f"Per-core depth scales: {args.per_core_depth_scale} | "
+        f"Error highlight: {args.highlight_error_networks} | "
+        f"{network_index_note}"
     )
 
     fig = build_figure(
@@ -444,7 +663,11 @@ def main() -> None:
         f"z_stretch={args.z_stretch}, "
         f"aspect_z={args.aspect_z}, "
         f"crop_unused_depth={args.crop_unused_depth}, "
-        f"per_core_depth_scale={args.per_core_depth_scale}"
+        f"per_core_depth_scale={args.per_core_depth_scale}, "
+        f"highlight_error_networks={args.highlight_error_networks}, "
+        f"network_index={args.network_index}, "
+        f"error_networks={error_network_count}, "
+        f"highlighted_ties={highlighted_count}"
     )
 
     if args.show:
