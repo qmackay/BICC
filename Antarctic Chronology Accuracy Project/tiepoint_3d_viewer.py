@@ -20,8 +20,8 @@ if trim_data == True:
     FILTER_CORE: str | None = 'EDC'
     # Depth range on FILTER_CORE. Values are in raw depth units from tiepoint files.
     # Either order is accepted; the script will sort to [min, max].
-    FILTER_TOP_DEPTH: float | None = 700
-    FILTER_BOTTOM_DEPTH: float | None = 710
+    FILTER_TOP_DEPTH: float | None = 400
+    FILTER_BOTTOM_DEPTH: float | None = 410
     # If True, hide depth ranges that have no visible points after filtering.
     CROP_UNUSED_DEPTH_AFTER_FILTER: bool = True
     # If True, each core is independently normalized to the same vertical display range.

@@ -18,6 +18,20 @@ from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 from numpy._core.numeric import indices
 
+# cores list of sites for AA
+
+project = 'Antarctic'
+output_dir = 'table_out/'
+
+# get all link combos
+with open(f'/Users/quinnmackay/Documents/GitHub/BICC/Antarctic Chronology Accuracy Project/{project}/parameters.yml') as f:
+    data = yaml.safe_load(f)
+list_sites = data["list_sites"]
+pairs = [f"{a}-{b}" for a, b in itertools.combinations(list_sites, 2)]
+
+error_margin = 0.15
+big_error_margin = 0.25
+
 #set working dir
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
