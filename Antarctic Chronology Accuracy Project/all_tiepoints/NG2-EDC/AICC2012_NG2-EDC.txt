@@ -1,0 +1,4 @@
+#Includes NG2-EDC 10Be tiepoints from AICC2012, originally from Loulergue et al., 2007
+depth1	depth2	reference
+2110.1	735.5	AICC2012
+2127.5	744.8	AICC2012

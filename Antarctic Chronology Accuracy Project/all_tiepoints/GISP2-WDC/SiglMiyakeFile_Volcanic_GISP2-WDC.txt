@@ -1,0 +1,10 @@
+#From Sigl Miyake file, but volcanic matches.
+depth1	depth2	reference
+481.02	494.99	SiglMiyakeFile_Volcanic
+774.51	845.07	SiglMiyakeFile_Volcanic
+978.13	1099.05	SiglMiyakeFile_Volcanic
+1178.68	1348.78	SiglMiyakeFile_Volcanic
+1279.62	1475.13	SiglMiyakeFile_Volcanic
+1326.07	1525.99	SiglMiyakeFile_Volcanic
+1413.77	1624.03	SiglMiyakeFile_Volcanic
+1439.74	1652.98	SiglMiyakeFile_Volcanic
