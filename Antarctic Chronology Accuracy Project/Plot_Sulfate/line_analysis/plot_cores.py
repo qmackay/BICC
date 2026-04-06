@@ -10,11 +10,11 @@ from matplotlib.patches import ConnectionPatch
 from matplotlib.widgets import Button, TextBox
 
 
-CORE_PAIR: tuple[str, str] = ("wdc", "td")
+CORE_PAIR: tuple[str, str] = ("wdc", "edc")
 
 CORE_DATA_FILES: dict[str, str | None] = {
 	"df": None,
-	"edc": None,
+	"edc": 'edc_sulfate.txt',
 	"edml": None,
 	"td": None,
 	"wdc": 'wdc_sulfate.txt',
@@ -202,14 +202,13 @@ def clip_depth_window(df: pd.DataFrame, min_depth: float, max_depth: float) -> p
 	return df[(df["depth"] >= min_depth) & (df["depth"] <= max_depth)].copy()
 
 
-def visible_pairs(
+def pairs_in_bottom_window(
 	all_pairs: list[tuple[float, float, int]],
-	window_a: tuple[float, float],
 	window_b: tuple[float, float],
 ) -> list[tuple[float, float, int]]:
 	visible: list[tuple[float, float, int]] = []
 	for depth_a, depth_b, idx in all_pairs:
-		if window_a[0] <= depth_a <= window_a[1] and window_b[0] <= depth_b <= window_b[1]:
+		if window_b[0] <= depth_b <= window_b[1]:
 			visible.append((depth_a, depth_b, idx))
 	return visible
 
@@ -308,33 +307,33 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		box_b_min.set_val(f"{current_window_b[0]:g}")
 		box_b_max.set_val(f"{current_window_b[1]:g}")
 
-	def synced_window_b_from_window_a(current_window_a: tuple[float, float]) -> tuple[float, float]:
-		pairs_in_a = [
+	def synced_window_a_from_window_b(current_window_b: tuple[float, float]) -> tuple[float, float]:
+		pairs_in_b = [
 			(depth_a, depth_b, idx)
 			for depth_a, depth_b, idx in all_pairs
-			if current_window_a[0] <= depth_a <= current_window_a[1]
+			if current_window_b[0] <= depth_b <= current_window_b[1]
 		]
 
-		if len(pairs_in_a) < 2:
+		if len(pairs_in_b) < 2:
 			raise ValueError(
-				"Sync requires at least 2 tiepoints in Core A depth range."
+				"Sync requires at least 2 tiepoints in Core B depth range."
 			)
 
-		pairs_in_a.sort(key=lambda item: item[0])
-		a_first, b_first, _ = pairs_in_a[0]
-		a_last, b_last, _ = pairs_in_a[-1]
+		pairs_in_b.sort(key=lambda item: item[1])
+		a_first, b_first, _ = pairs_in_b[0]
+		a_last, b_last, _ = pairs_in_b[-1]
 
-		if a_last == a_first:
-			raise ValueError("Cannot sync: first and last Core A tiepoints are identical.")
+		if b_last == b_first:
+			raise ValueError("Cannot sync: first and last Core B tiepoints are identical.")
 
-		scale = (b_last - b_first) / (a_last - a_first)
-		b_min = b_first + (current_window_a[0] - a_first) * scale
-		b_max = b_first + (current_window_a[1] - a_first) * scale
+		scale = (a_last - a_first) / (b_last - b_first)
+		a_min = a_first + (current_window_b[0] - b_first) * scale
+		a_max = a_first + (current_window_b[1] - b_first) * scale
 
-		if b_min == b_max:
-			raise ValueError("Cannot sync: computed Core B range is zero-width.")
+		if a_min == a_max:
+			raise ValueError("Cannot sync: computed Core A range is zero-width.")
 
-		return clamp_window((b_min, b_max), data_bounds_b)
+		return clamp_window((a_min, a_max), data_bounds_a)
 
 	def redraw() -> None:
 		for connector in state["connectors"]:
@@ -351,7 +350,7 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 		view_a = clip_depth_window(series_a.data, current_window_a[0], current_window_a[1])
 		view_b = clip_depth_window(series_b.data, current_window_b[0], current_window_b[1])
-		visible = visible_pairs(all_pairs, current_window_a, current_window_b)
+		visible = pairs_in_bottom_window(all_pairs, current_window_b)
 		draw_tiepoints = len(visible) <= MAX_DRAWN_TIEPOINTS
 
 		ax_a.clear()
@@ -441,12 +440,12 @@ def plot_pair(core_a: str, core_b: str) -> None:
 				fig.add_artist(connector)
 				state["connectors"].append(connector)
 
-			title_suffix = f" ({len(visible)} visible tiepoints)"
+			title_suffix = f" ({len(visible)} tiepoints in bottom range)"
 		else:
 			ax_a.text(
 				0.5,
 				0.03,
-				f"Tiepoints hidden: {len(visible)} in range (> {MAX_DRAWN_TIEPOINTS})",
+				f"Tiepoints hidden: {len(visible)} in bottom range (> {MAX_DRAWN_TIEPOINTS})",
 				transform=ax_a.transAxes,
 				ha="center",
 				va="bottom",
@@ -454,7 +453,7 @@ def plot_pair(core_a: str, core_b: str) -> None:
 				fontsize=10,
 			)
 			title_suffix = (
-				f" ({len(visible)} visible tiepoints; hidden because > {MAX_DRAWN_TIEPOINTS})"
+				f" ({len(visible)} tiepoints in bottom range; hidden because > {MAX_DRAWN_TIEPOINTS})"
 			)
 
 		fig.suptitle(
@@ -479,16 +478,16 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		redraw()
 
 	def on_sync(_event) -> None:
-		current_window_a = state["window_a"]
-		assert isinstance(current_window_a, tuple)
+		current_window_b = state["window_b"]
+		assert isinstance(current_window_b, tuple)
 		try:
-			new_window_b = synced_window_b_from_window_a(current_window_a)
+			new_window_a = synced_window_a_from_window_b(current_window_b)
 		except ValueError as exc:
 			fig.suptitle(str(exc), fontsize=12, color="crimson")
 			fig.canvas.draw_idle()
 			return
 
-		state["window_b"] = new_window_b
+		state["window_a"] = new_window_a
 		sync_boxes()
 		redraw()
 
