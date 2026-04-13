@@ -10,12 +10,12 @@ from matplotlib.patches import ConnectionPatch
 from matplotlib.widgets import Button, TextBox
 
 
-CORE_PAIR: tuple[str, str] = ("wdc", "edc")
+CORE_PAIR: tuple[str, str] = ("edc", "td")
 
 CORE_DATA_FILES: dict[str, str | None] = {
 	"df": None,
 	"edc": 'edc_sulfate.txt',
-	"edml": None,
+	"edml": 'edml_sulfate.txt',
 	"td": None,
 	"wdc": 'wdc_sulfate.txt',
 }
