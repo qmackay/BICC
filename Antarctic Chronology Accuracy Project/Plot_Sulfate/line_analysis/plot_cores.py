@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.lines import Line2D
 from matplotlib.patches import ConnectionPatch
 from matplotlib.widgets import Button, TextBox
 
 
-CORE_PAIR: tuple[str, str] = ("edc", "td")
+CORE_PAIR: tuple[str, str] = ("wdc", "td")
 
 CORE_DATA_FILES: dict[str, str | None] = {
 	"df": None,
@@ -22,13 +23,13 @@ CORE_DATA_FILES: dict[str, str | None] = {
 
 PREFERRED_DATA_KEYWORDS: tuple[str, ...] = ("sulfate", "ecm", "dep")
 SHOW_VERTICAL_TIE_LINES = True
-LABEL_START_INDEX = 0
 MAX_DRAWN_TIEPOINTS = 25
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PLOT_SULFATE_DIR = SCRIPT_DIR.parent
+PROJECT_DIR = PLOT_SULFATE_DIR.parent
 OUT_DIR = PLOT_SULFATE_DIR / "out"
-TIEPOINT_DIR = PLOT_SULFATE_DIR / "tiepoints"
+BIG_TABLE_PATH = PROJECT_DIR / "all_tiepoints" / "big_table.csv"
 
 CORE_ALIASES = {
 	"df": "DF",
@@ -38,6 +39,7 @@ CORE_ALIASES = {
 	"taldice": "TALDICE",
 	"wdc": "WDC",
 }
+CORE_SELECTION_KEYS: tuple[str, ...] = tuple(sorted(CORE_DATA_FILES.keys()))
 
 
 @dataclass
@@ -47,6 +49,9 @@ class CoreSeries:
 	file_path: Path
 	data: pd.DataFrame
 	value_label: str
+
+
+Tiepoint = tuple[float, float, str, str]
 
 
 def canonical_core_name(core: str) -> str:
@@ -137,6 +142,15 @@ def choose_data_file(core: str, prefer_window: tuple[float, float] | None = None
 	return txt_files[0]
 
 
+def list_core_data_files(core: str) -> list[Path]:
+	core_key = core.strip().lower()
+	folder = core_out_folder(core_key)
+	txt_files = sorted((p for p in folder.glob("*.txt") if p.is_file()), key=rank_data_file)
+	if not txt_files:
+		raise FileNotFoundError(f"No .txt data files found in {folder}")
+	return txt_files
+
+
 def load_core_series(core: str, prefer_window: tuple[float, float] | None = None) -> CoreSeries:
 	canonical_name = canonical_core_name(core)
 	file_path = choose_data_file(core, prefer_window=prefer_window)
@@ -151,32 +165,89 @@ def load_core_series(core: str, prefer_window: tuple[float, float] | None = None
 	)
 
 
-def find_tiepoint_pair_dir(core_a: str, core_b: str) -> Path:
-	a = canonical_core_name(core_a)
-	b = canonical_core_name(core_b)
-	direct = TIEPOINT_DIR / f"{a}-{b}"
-	reverse = TIEPOINT_DIR / f"{b}-{a}"
-	if direct.exists():
-		return direct
-	if reverse.exists():
-		return reverse
-	raise FileNotFoundError(f"No tiepoint folder found for pair {a}-{b}")
+def find_big_table_pair_columns(core_a: str, core_b: str) -> tuple[str, str, str, str, str]:
+	canonical_a = canonical_core_name(core_a)
+	canonical_b = canonical_core_name(core_b)
+
+	header = pd.read_csv(BIG_TABLE_PATH, nrows=0)
+	columns = [str(col) for col in header.columns]
+
+	for reference_col in columns:
+		if not reference_col.endswith("_reference"):
+			continue
+
+		prefix = reference_col[: -len("_reference")]
+		code_col = f"{prefix}_code"
+		if code_col not in columns:
+			continue
+
+		core_columns = [
+			col
+			for col in columns
+			if col.startswith(f"{prefix}_") and col not in {reference_col, code_col}
+		]
+		if len(core_columns) != 2:
+			continue
+
+		core_to_column: dict[str, str] = {}
+		for col in core_columns:
+			core_name = col[len(prefix) + 1 :]
+			core_to_column[core_name] = col
+
+		if canonical_a in core_to_column and canonical_b in core_to_column:
+			return prefix, core_to_column[canonical_a], core_to_column[canonical_b], reference_col, code_col
+
+	raise ValueError(
+		f"Could not find columns in {BIG_TABLE_PATH} for pair {canonical_a}-{canonical_b}."
+	)
 
 
-def load_tiepoint_depths(pair_dir: Path, core: str) -> list[float]:
-	canonical = canonical_core_name(core)
-	tie_file = pair_dir / f"{canonical}.txt"
-	if not tie_file.exists():
-		raise FileNotFoundError(f"Missing tiepoint file for {canonical}: {tie_file}")
+def label_from_code(code: str, fallback_index: int) -> str:
+	text = code.strip()
+	if not text:
+		return str(fallback_index)
+	label = text.rsplit("_", 1)[-1].strip()
+	if not label:
+		return str(fallback_index)
+	return label
 
-	series = pd.read_csv(tie_file, header=None, comment="#").iloc[:, 0]
-	depths = pd.to_numeric(series, errors="coerce").dropna().tolist()
-	return [float(depth) for depth in depths]
 
+def load_tiepoint_pairs_from_big_table(core_a: str, core_b: str) -> tuple[str, list[Tiepoint]]:
+	if not BIG_TABLE_PATH.exists():
+		raise FileNotFoundError(f"Missing tiepoint table: {BIG_TABLE_PATH}")
 
-def paired_depths(depths_a: Iterable[float], depths_b: Iterable[float]) -> list[tuple[float, float, int]]:
-	pairs = list(zip(depths_a, depths_b))
-	return [(float(a), float(b), idx + LABEL_START_INDEX) for idx, (a, b) in enumerate(pairs)]
+	pair_prefix, col_a, col_b, reference_col, code_col = find_big_table_pair_columns(core_a, core_b)
+	df = pd.read_csv(
+		BIG_TABLE_PATH,
+		usecols=[col_a, col_b, reference_col, code_col],
+		dtype={reference_col: "string", code_col: "string"},
+		low_memory=False,
+	)
+
+	depth_a = pd.to_numeric(df[col_a], errors="coerce")
+	depth_b = pd.to_numeric(df[col_b], errors="coerce")
+	reference_values = df[reference_col].fillna("unknown").astype(str).str.strip()
+	code_values = df[code_col].fillna("").astype(str).str.strip()
+
+	valid_rows = depth_a.notna() & depth_b.notna()
+	pairs: list[Tiepoint] = []
+	for row_idx, (value_a, value_b, code, reference_raw) in enumerate(
+		zip(depth_a[valid_rows], depth_b[valid_rows], code_values[valid_rows], reference_values[valid_rows])
+	):
+		value_a_num = float(value_a)
+		value_b_num = float(value_b)
+		if isinstance(code, str):
+			label = label_from_code(code, row_idx)
+		else:
+			label = str(row_idx)
+
+		reference = str(reference_raw).strip() if isinstance(reference_raw, str) else ""
+		if not reference:
+			reference = "unknown"
+
+		pairs.append((value_a_num, value_b_num, label, reference))
+
+	return pair_prefix, pairs
 
 
 def auto_window_from_values(values: Iterable[float], pad_fraction: float = 0.05, min_pad: float = 1.0) -> tuple[float, float] | None:
@@ -203,14 +274,124 @@ def clip_depth_window(df: pd.DataFrame, min_depth: float, max_depth: float) -> p
 
 
 def pairs_in_bottom_window(
-	all_pairs: list[tuple[float, float, int]],
+	all_pairs: list[Tiepoint],
 	window_b: tuple[float, float],
-) -> list[tuple[float, float, int]]:
-	visible: list[tuple[float, float, int]] = []
-	for depth_a, depth_b, idx in all_pairs:
+) -> list[Tiepoint]:
+	visible: list[Tiepoint] = []
+	for depth_a, depth_b, label, reference in all_pairs:
 		if window_b[0] <= depth_b <= window_b[1]:
-			visible.append((depth_a, depth_b, idx))
+			visible.append((depth_a, depth_b, label, reference))
 	return visible
+
+
+def build_reference_color_map(all_pairs: list[Tiepoint]) -> dict[str, tuple[float, float, float, float]]:
+	unique_references = sorted({reference for _, _, _, reference in all_pairs})
+	cmap = plt.get_cmap("tab20")
+	return {reference: cmap(idx % cmap.N) for idx, reference in enumerate(unique_references)}
+
+
+class DropdownSelector:
+	def __init__(
+		self,
+		fig: plt.Figure,
+		button_rect: list[float],
+		menu_rect: list[float],
+		title: str,
+		options: list[str],
+		initial: str,
+		on_select: Callable[[str], None],
+		on_toggle: Callable[["DropdownSelector"], None],
+	) -> None:
+		self.fig = fig
+		self.title = title
+		self.options = options
+		self.menu_rect = menu_rect
+		self.on_select = on_select
+		self.on_toggle = on_toggle
+
+		if initial not in options:
+			raise ValueError(f"Initial option '{initial}' not in options for {title}.")
+
+		self.button_ax = fig.add_axes(button_rect)
+		self.button = Button(self.button_ax, self._button_label(initial))
+		self.current = initial
+
+		self.option_axes: list[plt.Axes] = []
+		self.option_buttons: list[Button] = []
+		self._build_option_buttons(options)
+
+		self.button.on_clicked(self._handle_toggle)
+
+	def _button_label(self, value: str) -> str:
+		return f"{self.title}: {value}"
+
+	def _build_option_buttons(self, options: list[str]) -> None:
+		menu_x, menu_y, menu_w, menu_h = self.menu_rect
+		option_height = menu_h / max(len(options), 1)
+		for idx, option in enumerate(options):
+			ax_y = menu_y + menu_h - option_height * (idx + 1)
+			option_ax = self.fig.add_axes([menu_x, ax_y, menu_w, option_height])
+			option_button = Button(option_ax, option)
+			option_button.on_clicked(lambda _event, selected=option: self._handle_select(selected))
+			option_button.set_active(False)
+			option_ax.set_visible(False)
+			self.option_axes.append(option_ax)
+			self.option_buttons.append(option_button)
+
+	def _handle_toggle(self, _event) -> None:
+		self.on_toggle(self)
+
+	def _handle_select(self, selected: str) -> None:
+		self.current = selected
+		self.button.label.set_text(self._button_label(selected))
+		self.hide_menu()
+		self.on_select(selected)
+		self.fig.canvas.draw_idle()
+
+	def show_menu(self) -> None:
+		for option_ax, option_button in zip(self.option_axes, self.option_buttons):
+			option_ax.set_visible(True)
+			option_button.set_active(True)
+
+	def hide_menu(self) -> None:
+		for option_ax, option_button in zip(self.option_axes, self.option_buttons):
+			option_ax.set_visible(False)
+			option_button.set_active(False)
+
+	def toggle_menu(self) -> None:
+		if self.is_menu_visible():
+			self.hide_menu()
+		else:
+			self.show_menu()
+
+	def is_menu_visible(self) -> bool:
+		if not self.option_axes:
+			return False
+		return bool(self.option_axes[0].get_visible())
+
+	def set_current(self, selected: str) -> None:
+		if selected not in self.options:
+			raise ValueError(f"Option '{selected}' not available in selector {self.title}.")
+		self.current = selected
+		self.button.label.set_text(self._button_label(selected))
+
+	def set_title(self, title: str) -> None:
+		self.title = title
+		self.button.label.set_text(self._button_label(self.current))
+
+	def set_options(self, options: list[str], initial: str) -> None:
+		if initial not in options:
+			raise ValueError(f"Initial option '{initial}' not in options for {self.title}.")
+
+		self.hide_menu()
+		for option_ax in self.option_axes:
+			option_ax.remove()
+
+		self.options = options
+		self.option_axes = []
+		self.option_buttons = []
+		self._build_option_buttons(options)
+		self.set_current(initial)
 
 
 def marker_y_positions(values: pd.Series) -> tuple[float, float]:
@@ -227,11 +408,13 @@ def marker_y_positions(values: pd.Series) -> tuple[float, float]:
 def build_view(
 	core_a: str,
 	core_b: str,
-) -> tuple[CoreSeries, CoreSeries, list[tuple[float, float, int]], tuple[float, float], tuple[float, float]]:
-	pair_dir = find_tiepoint_pair_dir(core_a, core_b)
-	tie_a = load_tiepoint_depths(pair_dir, core_a)
-	tie_b = load_tiepoint_depths(pair_dir, core_b)
-	paired = paired_depths(tie_a, tie_b)
+) -> tuple[CoreSeries, CoreSeries, list[Tiepoint], tuple[float, float], tuple[float, float], str]:
+	pair_prefix, paired = load_tiepoint_pairs_from_big_table(core_a, core_b)
+	tie_a = [depth_a for depth_a, _, _, _ in paired]
+	tie_b = [depth_b for _, depth_b, _, _ in paired]
+
+	if not paired:
+		raise ValueError(f"No tiepoints found in {BIG_TABLE_PATH} for pair prefix {pair_prefix}.")
 
 	window_a = auto_window_from_values(tie_a)
 	window_b = auto_window_from_values(tie_b)
@@ -252,20 +435,31 @@ def build_view(
 	else:
 		window_b = clamp_window(window_b, data_bounds_b)
 
-	return series_a, series_b, paired, window_a, window_b
+	return series_a, series_b, paired, window_a, window_b, pair_prefix
 
 
 def plot_pair(core_a: str, core_b: str) -> None:
-	series_a, series_b, all_pairs, window_a, window_b = build_view(core_a, core_b)
+	series_a, series_b, all_pairs, window_a, window_b, pair_prefix = build_view(core_a, core_b)
 	data_bounds_a = (float(series_a.data["depth"].min()), float(series_a.data["depth"].max()))
 	data_bounds_b = (float(series_b.data["depth"].min()), float(series_b.data["depth"].max()))
+	reference_colors = build_reference_color_map(all_pairs)
+	available_files_a = list_core_data_files(core_a)
+	available_files_b = list_core_data_files(core_b)
+	file_map_a = {path.name: path for path in available_files_a}
+	file_map_b = {path.name: path for path in available_files_b}
+	current_core_a = core_a.strip().lower()
+	current_core_b = core_b.strip().lower()
 
 	fig, (ax_a, ax_b) = plt.subplots(2, 1, figsize=(15, 9), sharex=False)
-	plt.subplots_adjust(left=0.08, right=0.98, top=0.93, bottom=0.22, hspace=0.16)
+	plt.subplots_adjust(left=0.08, right=0.80, top=0.93, bottom=0.22, hspace=0.16)
 
 	state: dict[str, object] = {
 		"window_a": window_a,
 		"window_b": window_b,
+		"base_window_a": window_a,
+		"base_window_b": window_b,
+		"data_bounds_a": data_bounds_a,
+		"data_bounds_b": data_bounds_b,
 		"connectors": [],
 	}
 
@@ -309,8 +503,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 	def synced_window_a_from_window_b(current_window_b: tuple[float, float]) -> tuple[float, float]:
 		pairs_in_b = [
-			(depth_a, depth_b, idx)
-			for depth_a, depth_b, idx in all_pairs
+			(depth_a, depth_b)
+			for depth_a, depth_b, _, _ in all_pairs
 			if current_window_b[0] <= depth_b <= current_window_b[1]
 		]
 
@@ -320,8 +514,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 			)
 
 		pairs_in_b.sort(key=lambda item: item[1])
-		a_first, b_first, _ = pairs_in_b[0]
-		a_last, b_last, _ = pairs_in_b[-1]
+		a_first, b_first = pairs_in_b[0]
+		a_last, b_last = pairs_in_b[-1]
 
 		if b_last == b_first:
 			raise ValueError("Cannot sync: first and last Core B tiepoints are identical.")
@@ -333,7 +527,9 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		if a_min == a_max:
 			raise ValueError("Cannot sync: computed Core A range is zero-width.")
 
-		return clamp_window((a_min, a_max), data_bounds_a)
+		bounds_a = state["data_bounds_a"]
+		assert isinstance(bounds_a, tuple)
+		return clamp_window((a_min, a_max), bounds_a)
 
 	def redraw() -> None:
 		for connector in state["connectors"]:
@@ -384,7 +580,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		seg_half_width_b = max((current_window_b[1] - current_window_b[0]) * 0.008, 0.01)
 
 		if draw_tiepoints:
-			for depth_a, depth_b, idx in visible:
+			for depth_a, depth_b, label, reference in visible:
+				tie_color = reference_colors.get(reference, "crimson")
 				if SHOW_VERTICAL_TIE_LINES:
 					ax_a.axvline(depth_a, color="gray", lw=2.5, alpha=0.15, zorder=1)
 					ax_b.axvline(depth_b, color="gray", lw=2.5, alpha=0.15, zorder=1)
@@ -393,7 +590,7 @@ def plot_pair(core_a: str, core_b: str) -> None:
 					y=y_line_a,
 					xmin=depth_a - seg_half_width_a,
 					xmax=depth_a + seg_half_width_a,
-					color="crimson",
+					color=tie_color,
 					lw=1.2,
 					zorder=5,
 				)
@@ -401,7 +598,7 @@ def plot_pair(core_a: str, core_b: str) -> None:
 					y=y_line_b,
 					xmin=depth_b - seg_half_width_b,
 					xmax=depth_b + seg_half_width_b,
-					color="crimson",
+					color=tie_color,
 					lw=1.2,
 					zorder=5,
 				)
@@ -409,8 +606,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 				ax_a.text(
 					depth_a,
 					y_text_a,
-					str(idx),
-					color="crimson",
+					str(label),
+					color=tie_color,
 					fontsize=8,
 					ha="center",
 					va="bottom",
@@ -419,8 +616,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 				ax_b.text(
 					depth_b,
 					y_text_b,
-					str(idx),
-					color="crimson",
+					str(label),
+					color=tie_color,
 					fontsize=8,
 					ha="center",
 					va="bottom",
@@ -432,13 +629,32 @@ def plot_pair(core_a: str, core_b: str) -> None:
 					coordsA=ax_a.transData,
 					xyB=(depth_b, y_line_b),
 					coordsB=ax_b.transData,
-					color="crimson",
+					color=tie_color,
 					lw=0.8,
 					alpha=0.55,
 					zorder=4,
 				)
 				fig.add_artist(connector)
 				state["connectors"].append(connector)
+
+			visible_references = sorted({reference for _, _, _, reference in visible})
+			if visible_references:
+				legend_handles = [
+					Line2D([0], [0], color=reference_colors.get(reference, "crimson"), lw=2, label=reference)
+					for reference in visible_references
+				]
+				ncol = 1 if len(legend_handles) <= 10 else 2
+				ax_a.legend(
+					handles=legend_handles,
+					title="Reference",
+					loc="upper left",
+					bbox_to_anchor=(1.01, 1.0),
+					borderaxespad=0.0,
+					framealpha=0.9,
+					fontsize=8,
+					title_fontsize=9,
+					ncol=ncol,
+				)
 
 			title_suffix = f" ({len(visible)} tiepoints in bottom range)"
 		else:
@@ -463,10 +679,182 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 		fig.canvas.draw_idle()
 
+	def update_core_series(core_side: str, file_name: str) -> None:
+		if core_side == "a":
+			selected_path = file_map_a[file_name]
+			target_series = series_a
+			window_key = "window_a"
+			bounds_key = "data_bounds_a"
+			min_box = box_a_min
+			max_box = box_a_max
+		else:
+			selected_path = file_map_b[file_name]
+			target_series = series_b
+			window_key = "window_b"
+			bounds_key = "data_bounds_b"
+			min_box = box_b_min
+			max_box = box_b_max
+
+		new_data = load_core_data(selected_path)
+		target_series.file_path = selected_path
+		target_series.data = new_data
+		target_series.value_label = str(new_data.attrs.get("value_label", "value"))
+
+		new_bounds = (float(new_data["depth"].min()), float(new_data["depth"].max()))
+		current_window = state[window_key]
+		assert isinstance(current_window, tuple)
+		state[bounds_key] = new_bounds
+		state[window_key] = clamp_window(current_window, new_bounds)
+
+		updated_window = state[window_key]
+		assert isinstance(updated_window, tuple)
+		min_box.set_val(f"{updated_window[0]:g}")
+		max_box.set_val(f"{updated_window[1]:g}")
+		sync_boxes()
+		redraw()
+
+	dropdowns: list[DropdownSelector] = []
+	selector_by_name: dict[str, DropdownSelector] = {}
+
+	def toggle_dropdown(active_dropdown: DropdownSelector) -> None:
+		for dropdown in dropdowns:
+			if dropdown is active_dropdown:
+				dropdown.toggle_menu()
+			else:
+				dropdown.hide_menu()
+		fig.canvas.draw_idle()
+
+	def update_core_pair(new_core_a: str, new_core_b: str) -> bool:
+		nonlocal series_a, series_b, all_pairs, pair_prefix
+		nonlocal reference_colors, available_files_a, available_files_b, file_map_a, file_map_b
+		nonlocal current_core_a, current_core_b
+
+		try:
+			new_series_a, new_series_b, new_pairs, new_window_a, new_window_b, new_pair_prefix = build_view(new_core_a, new_core_b)
+			new_available_files_a = list_core_data_files(new_core_a)
+			new_available_files_b = list_core_data_files(new_core_b)
+		except Exception as exc:
+			fig.suptitle(str(exc), fontsize=12, color="crimson")
+			fig.canvas.draw_idle()
+			return False
+
+		series_a = new_series_a
+		series_b = new_series_b
+		all_pairs = new_pairs
+		pair_prefix = new_pair_prefix
+		reference_colors = build_reference_color_map(all_pairs)
+		available_files_a = new_available_files_a
+		available_files_b = new_available_files_b
+		file_map_a = {path.name: path for path in available_files_a}
+		file_map_b = {path.name: path for path in available_files_b}
+		current_core_a = new_core_a
+		current_core_b = new_core_b
+
+		new_bounds_a = (float(series_a.data["depth"].min()), float(series_a.data["depth"].max()))
+		new_bounds_b = (float(series_b.data["depth"].min()), float(series_b.data["depth"].max()))
+		state["data_bounds_a"] = new_bounds_a
+		state["data_bounds_b"] = new_bounds_b
+		state["window_a"] = new_window_a
+		state["window_b"] = new_window_b
+		state["base_window_a"] = new_window_a
+		state["base_window_b"] = new_window_b
+
+		box_a_min.label.set_text(f"{series_a.canonical_name} min")
+		box_a_max.label.set_text(f"{series_a.canonical_name} max")
+		box_b_min.label.set_text(f"{series_b.canonical_name} min")
+		box_b_max.label.set_text(f"{series_b.canonical_name} max")
+
+		file_selector_a = selector_by_name["file_a"]
+		file_selector_b = selector_by_name["file_b"]
+		file_selector_a.set_title(f"{series_a.canonical_name} file")
+		file_selector_b.set_title(f"{series_b.canonical_name} file")
+		file_selector_a.set_options([path.name for path in available_files_a], series_a.file_path.name)
+		file_selector_b.set_options([path.name for path in available_files_b], series_b.file_path.name)
+
+		sync_boxes()
+		redraw()
+		return True
+
+	def on_core_select(core_side: str, selected_core: str) -> None:
+		old_core_a = current_core_a
+		old_core_b = current_core_b
+
+		if core_side == "a":
+			next_core_a = selected_core
+			next_core_b = current_core_b
+		else:
+			next_core_a = current_core_a
+			next_core_b = selected_core
+
+		if not update_core_pair(next_core_a, next_core_b):
+			if core_side == "a":
+				selector_by_name["core_a"].set_current(old_core_a)
+			else:
+				selector_by_name["core_b"].set_current(old_core_b)
+			fig.canvas.draw_idle()
+
+	initial_file_a = series_a.file_path.name
+	initial_file_b = series_b.file_path.name
+	if initial_file_a not in file_map_a:
+		initial_file_a = available_files_a[0].name
+	if initial_file_b not in file_map_b:
+		initial_file_b = available_files_b[0].name
+
+	dropdown_core_a = DropdownSelector(
+		fig=fig,
+		button_rect=[0.82, 0.78, 0.16, 0.04],
+		menu_rect=[0.82, 0.82, 0.16, 0.16],
+		title="Core A",
+		options=list(CORE_SELECTION_KEYS),
+		initial=current_core_a,
+		on_select=lambda selected: on_core_select("a", selected),
+		on_toggle=toggle_dropdown,
+	)
+	dropdown_core_b = DropdownSelector(
+		fig=fig,
+		button_rect=[0.82, 0.58, 0.16, 0.04],
+		menu_rect=[0.82, 0.62, 0.16, 0.16],
+		title="Core B",
+		options=list(CORE_SELECTION_KEYS),
+		initial=current_core_b,
+		on_select=lambda selected: on_core_select("b", selected),
+		on_toggle=toggle_dropdown,
+	)
+
+	dropdown_a = DropdownSelector(
+		fig=fig,
+		button_rect=[0.82, 0.38, 0.16, 0.04],
+		menu_rect=[0.82, 0.42, 0.16, 0.16],
+		title=f"{series_a.canonical_name} file",
+		options=[path.name for path in available_files_a],
+		initial=initial_file_a,
+		on_select=lambda selected: update_core_series("a", selected),
+		on_toggle=toggle_dropdown,
+	)
+	dropdown_b = DropdownSelector(
+		fig=fig,
+		button_rect=[0.82, 0.18, 0.16, 0.04],
+		menu_rect=[0.82, 0.22, 0.16, 0.16],
+		title=f"{series_b.canonical_name} file",
+		options=[path.name for path in available_files_b],
+		initial=initial_file_b,
+		on_select=lambda selected: update_core_series("b", selected),
+		on_toggle=toggle_dropdown,
+	)
+	dropdowns.extend([dropdown_core_a, dropdown_core_b, dropdown_a, dropdown_b])
+	selector_by_name["core_a"] = dropdown_core_a
+	selector_by_name["core_b"] = dropdown_core_b
+	selector_by_name["file_a"] = dropdown_a
+	selector_by_name["file_b"] = dropdown_b
+
 	def apply_windows(_event=None) -> None:
 		try:
-			new_window_a = parse_window(box_a_min, box_a_max, data_bounds_a, series_a.canonical_name)
-			new_window_b = parse_window(box_b_min, box_b_max, data_bounds_b, series_b.canonical_name)
+			bounds_a = state["data_bounds_a"]
+			bounds_b = state["data_bounds_b"]
+			assert isinstance(bounds_a, tuple)
+			assert isinstance(bounds_b, tuple)
+			new_window_a = parse_window(box_a_min, box_a_max, bounds_a, series_a.canonical_name)
+			new_window_b = parse_window(box_b_min, box_b_max, bounds_b, series_b.canonical_name)
 		except ValueError as exc:
 			fig.suptitle(str(exc), fontsize=12, color="crimson")
 			fig.canvas.draw_idle()
@@ -492,8 +880,16 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		redraw()
 
 	def on_reset(_event) -> None:
-		state["window_a"] = window_a
-		state["window_b"] = window_b
+		bounds_a = state["data_bounds_a"]
+		bounds_b = state["data_bounds_b"]
+		base_window_a = state["base_window_a"]
+		base_window_b = state["base_window_b"]
+		assert isinstance(bounds_a, tuple)
+		assert isinstance(bounds_b, tuple)
+		assert isinstance(base_window_a, tuple)
+		assert isinstance(base_window_b, tuple)
+		state["window_a"] = clamp_window(base_window_a, bounds_a)
+		state["window_b"] = clamp_window(base_window_b, bounds_b)
 		sync_boxes()
 		redraw()
 
@@ -510,7 +906,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 	print(f"Core A file: {series_a.file_path}")
 	print(f"Core B file: {series_b.file_path}")
-	print(f"Tiepoint folder: {find_tiepoint_pair_dir(core_a, core_b)}")
+	print(f"Tiepoint table: {BIG_TABLE_PATH}")
+	print(f"Tiepoint pair prefix: {pair_prefix}")
 	print(f"Core A window: [{window_a[0]:g}, {window_a[1]:g}]")
 	print(f"Core B window: [{window_b[0]:g}, {window_b[1]:g}]")
 	print(f"Tiepoints loaded: {len(all_pairs)}")
