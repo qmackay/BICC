@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Sequence
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -11,7 +11,7 @@ from matplotlib.patches import ConnectionPatch
 from matplotlib.widgets import Button, TextBox
 
 
-CORE_PAIR: tuple[str, str] = ("wdc", "td")
+CORE_PAIR: tuple[str, str] = ("wdc", "edml")
 
 CORE_DATA_FILES: dict[str, str | None] = {
 	"df": None,
@@ -24,6 +24,11 @@ CORE_DATA_FILES: dict[str, str | None] = {
 PREFERRED_DATA_KEYWORDS: tuple[str, ...] = ("sulfate", "ecm", "dep")
 SHOW_VERTICAL_TIE_LINES = True
 MAX_DRAWN_TIEPOINTS = 25
+VERTICAL_OFFSET_STEP = 0.14
+MIN_VERTICAL_PAD_FRACTION = 0.04
+AUTO_PAD_FRACTION_STEP = 0.12
+DEFAULT_Y_RANGE_SCALE = 1.0
+MIN_Y_RANGE_SCALE = 0.2
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PLOT_SULFATE_DIR = SCRIPT_DIR.parent
@@ -290,6 +295,37 @@ def build_reference_color_map(all_pairs: list[Tiepoint]) -> dict[str, tuple[floa
 	return {reference: cmap(idx % cmap.N) for idx, reference in enumerate(unique_references)}
 
 
+def depth_bounds_from_payload(payload: Sequence[tuple[Path, pd.DataFrame, str]]) -> tuple[float, float]:
+	if not payload:
+		raise ValueError("At least one data file must be selected.")
+	min_depth = min(float(df["depth"].min()) for _, df, _ in payload)
+	max_depth = max(float(df["depth"].max()) for _, df, _ in payload)
+	if min_depth >= max_depth:
+		max_depth = min_depth + 1.0
+	return min_depth, max_depth
+
+
+def summarize_selected_file_names(file_names: Sequence[str], max_names: int = 3) -> str:
+	if not file_names:
+		return "No files selected"
+	if len(file_names) <= max_names:
+		return ", ".join(file_names)
+	remaining = len(file_names) - max_names
+	leading = ", ".join(file_names[:max_names])
+	return f"{leading} (+{remaining} more)"
+
+
+def merged_value_label(value_labels: Sequence[str]) -> str:
+	unique_labels = list(dict.fromkeys(value_labels))
+	if not unique_labels:
+		return "value"
+	if len(unique_labels) == 1:
+		return unique_labels[0]
+	if len(unique_labels) <= 3:
+		return "/".join(unique_labels)
+	return "value"
+
+
 class DropdownSelector:
 	def __init__(
 		self,
@@ -394,6 +430,134 @@ class DropdownSelector:
 		self.set_current(initial)
 
 
+class MultiSelectDropdownSelector:
+	def __init__(
+		self,
+		fig: plt.Figure,
+		button_rect: list[float],
+		menu_rect: list[float],
+		title: str,
+		options: list[str],
+		initial_selected: list[str],
+		on_select: Callable[[list[str]], None],
+		on_toggle: Callable[["MultiSelectDropdownSelector"], None],
+	) -> None:
+		self.fig = fig
+		self.title = title
+		self.options = options
+		self.menu_rect = menu_rect
+		self.on_select = on_select
+		self.on_toggle = on_toggle
+
+		if not options:
+			raise ValueError(f"No options provided for {title}.")
+
+		filtered_initial = [option for option in initial_selected if option in options]
+		if not filtered_initial:
+			filtered_initial = [options[0]]
+		self.selected = list(dict.fromkeys(filtered_initial))
+
+		self.button_ax = fig.add_axes(button_rect)
+		self.button = Button(self.button_ax, self._button_label())
+
+		self.option_axes: list[plt.Axes] = []
+		self.option_buttons: list[Button] = []
+		self._build_option_buttons(options)
+
+		self.button.on_clicked(self._handle_toggle)
+
+	def _selection_summary(self) -> str:
+		if len(self.selected) <= 2:
+			return ", ".join(self.selected)
+		return f"{len(self.selected)} selected"
+
+	def _button_label(self) -> str:
+		return f"{self.title}: {self._selection_summary()}"
+
+	def _option_label(self, option: str) -> str:
+		prefix = "[x]" if option in self.selected else "[ ]"
+		return f"{prefix} {option}"
+
+	def _build_option_buttons(self, options: list[str]) -> None:
+		menu_x, menu_y, menu_w, menu_h = self.menu_rect
+		option_height = menu_h / max(len(options), 1)
+		for idx, option in enumerate(options):
+			ax_y = menu_y + menu_h - option_height * (idx + 1)
+			option_ax = self.fig.add_axes([menu_x, ax_y, menu_w, option_height])
+			option_button = Button(option_ax, self._option_label(option))
+			option_button.on_clicked(lambda _event, selected=option: self._handle_select(selected))
+			option_button.set_active(False)
+			option_ax.set_visible(False)
+			self.option_axes.append(option_ax)
+			self.option_buttons.append(option_button)
+
+	def _refresh_labels(self) -> None:
+		for option, option_button in zip(self.options, self.option_buttons):
+			option_button.label.set_text(self._option_label(option))
+		self.button.label.set_text(self._button_label())
+
+	def _handle_toggle(self, _event) -> None:
+		self.on_toggle(self)
+
+	def _handle_select(self, selected: str) -> None:
+		if selected in self.selected:
+			if len(self.selected) == 1:
+				return
+			self.selected = [option for option in self.selected if option != selected]
+		else:
+			self.selected.append(selected)
+		self._refresh_labels()
+		self.on_select(self.get_selected())
+		self.fig.canvas.draw_idle()
+
+	def show_menu(self) -> None:
+		for option_ax, option_button in zip(self.option_axes, self.option_buttons):
+			option_ax.set_visible(True)
+			option_button.set_active(True)
+
+	def hide_menu(self) -> None:
+		for option_ax, option_button in zip(self.option_axes, self.option_buttons):
+			option_ax.set_visible(False)
+			option_button.set_active(False)
+
+	def toggle_menu(self) -> None:
+		if self.is_menu_visible():
+			self.hide_menu()
+		else:
+			self.show_menu()
+
+	def is_menu_visible(self) -> bool:
+		if not self.option_axes:
+			return False
+		return bool(self.option_axes[0].get_visible())
+
+	def set_title(self, title: str) -> None:
+		self.title = title
+		self.button.label.set_text(self._button_label())
+
+	def get_selected(self) -> list[str]:
+		return list(self.selected)
+
+	def set_options(self, options: list[str], initial_selected: list[str]) -> None:
+		if not options:
+			raise ValueError(f"No options provided for {self.title}.")
+
+		self.hide_menu()
+		for option_ax in self.option_axes:
+			option_ax.remove()
+
+		self.options = options
+		filtered_initial = [option for option in initial_selected if option in options]
+		if not filtered_initial:
+			filtered_initial = [options[0]]
+		self.selected = list(dict.fromkeys(filtered_initial))
+
+		self.option_axes = []
+		self.option_buttons = []
+		self._build_option_buttons(options)
+		self._refresh_labels()
+
+
 def marker_y_positions(values: pd.Series) -> tuple[float, float]:
 	y_min = float(values.min())
 	y_max = float(values.max())
@@ -403,6 +567,38 @@ def marker_y_positions(values: pd.Series) -> tuple[float, float]:
 	y_line = y_min + 0.92 * y_span
 	y_text = y_min + 0.965 * y_span
 	return y_line, y_text
+
+
+def set_offset_axis_limits(
+	axis: plt.Axes,
+	values: pd.Series,
+	rank: int,
+	count: int,
+	y_range_scale: float,
+) -> None:
+	y_min = float(values.min())
+	y_max = float(values.max())
+	y_span = y_max - y_min
+	if y_span == 0:
+		y_span = 1.0
+
+	safe_scale = max(float(y_range_scale), MIN_Y_RANGE_SCALE)
+	base_pad = (0.08 + AUTO_PAD_FRACTION_STEP * max(count - 1, 0)) * safe_scale
+	if count <= 1:
+		shift = 0.0
+	else:
+		centered_rank = rank - (count - 1) / 2.0
+		shift = centered_rank * VERTICAL_OFFSET_STEP * safe_scale
+
+	lower_pad_frac = max(base_pad + shift, MIN_VERTICAL_PAD_FRACTION)
+	upper_pad_frac = max(base_pad - shift, MIN_VERTICAL_PAD_FRACTION)
+
+	lower = y_min - y_span * lower_pad_frac
+	upper = y_max + y_span * upper_pad_frac
+	if lower >= upper:
+		lower = y_min - y_span * base_pad
+		upper = y_max + y_span * base_pad
+	axis.set_ylim(lower, upper)
 
 
 def build_view(
@@ -440,8 +636,6 @@ def build_view(
 
 def plot_pair(core_a: str, core_b: str) -> None:
 	series_a, series_b, all_pairs, window_a, window_b, pair_prefix = build_view(core_a, core_b)
-	data_bounds_a = (float(series_a.data["depth"].min()), float(series_a.data["depth"].max()))
-	data_bounds_b = (float(series_b.data["depth"].min()), float(series_b.data["depth"].max()))
 	reference_colors = build_reference_color_map(all_pairs)
 	available_files_a = list_core_data_files(core_a)
 	available_files_b = list_core_data_files(core_b)
@@ -449,6 +643,30 @@ def plot_pair(core_a: str, core_b: str) -> None:
 	file_map_b = {path.name: path for path in available_files_b}
 	current_core_a = core_a.strip().lower()
 	current_core_b = core_b.strip().lower()
+
+	def load_selected_payload(
+		file_map: dict[str, Path],
+		selected_names: Sequence[str],
+	) -> list[tuple[Path, pd.DataFrame, str]]:
+		if not selected_names:
+			raise ValueError("At least one data file must be selected.")
+		payload: list[tuple[Path, pd.DataFrame, str]] = []
+		for name in selected_names:
+			if name not in file_map:
+				raise ValueError(f"Selected data file '{name}' was not found.")
+			path = file_map[name]
+			data = load_core_data(path)
+			value_label = str(data.attrs.get("value_label", "value"))
+			payload.append((path, data, value_label))
+		return payload
+
+	selected_payload_a = load_selected_payload(file_map_a, [series_a.file_path.name])
+	selected_payload_b = load_selected_payload(file_map_b, [series_b.file_path.name])
+
+	data_bounds_a = depth_bounds_from_payload(selected_payload_a)
+	data_bounds_b = depth_bounds_from_payload(selected_payload_b)
+	window_a = clamp_window(window_a, data_bounds_a)
+	window_b = clamp_window(window_b, data_bounds_b)
 
 	fig, (ax_a, ax_b) = plt.subplots(2, 1, figsize=(15, 9), sharex=False)
 	plt.subplots_adjust(left=0.08, right=0.80, top=0.93, bottom=0.22, hspace=0.16)
@@ -461,12 +679,18 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		"data_bounds_a": data_bounds_a,
 		"data_bounds_b": data_bounds_b,
 		"connectors": [],
+		"extra_axes_a": [],
+		"extra_axes_b": [],
+		"y_scale_a": DEFAULT_Y_RANGE_SCALE,
+		"y_scale_b": DEFAULT_Y_RANGE_SCALE,
 	}
 
 	box_a_min_ax = fig.add_axes([0.18, 0.14, 0.14, 0.035])
 	box_a_max_ax = fig.add_axes([0.35, 0.14, 0.14, 0.035])
 	box_b_min_ax = fig.add_axes([0.60, 0.14, 0.14, 0.035])
 	box_b_max_ax = fig.add_axes([0.77, 0.14, 0.14, 0.035])
+	y_scale_a_ax = fig.add_axes([0.18, 0.02, 0.14, 0.035])
+	y_scale_b_ax = fig.add_axes([0.60, 0.02, 0.14, 0.035])
 	apply_ax = fig.add_axes([0.28, 0.07, 0.16, 0.045])
 	sync_ax = fig.add_axes([0.46, 0.07, 0.16, 0.045])
 	reset_ax = fig.add_axes([0.64, 0.07, 0.16, 0.045])
@@ -475,6 +699,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 	box_a_max = TextBox(box_a_max_ax, f"{series_a.canonical_name} max", initial=f"{window_a[1]:g}")
 	box_b_min = TextBox(box_b_min_ax, f"{series_b.canonical_name} min", initial=f"{window_b[0]:g}")
 	box_b_max = TextBox(box_b_max_ax, f"{series_b.canonical_name} max", initial=f"{window_b[1]:g}")
+	y_scale_a_box = TextBox(y_scale_a_ax, f"{series_a.canonical_name} Y-scale", initial=f"{DEFAULT_Y_RANGE_SCALE:g}")
+	y_scale_b_box = TextBox(y_scale_b_ax, f"{series_b.canonical_name} Y-scale", initial=f"{DEFAULT_Y_RANGE_SCALE:g}")
 	apply_button = Button(apply_ax, "Apply")
 	sync_button = Button(sync_ax, "Sync")
 	reset_button = Button(reset_ax, "Reset")
@@ -491,15 +717,30 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 		return clamp_window((parsed_min, parsed_max), bounds)
 
+	def parse_scale(box: TextBox, label: str) -> float:
+		try:
+			parsed = float(box.text.strip())
+		except ValueError as exc:
+			raise ValueError(f"{label} Y-scale must be numeric.") from exc
+		if parsed <= 0:
+			raise ValueError(f"{label} Y-scale must be > 0.")
+		return max(parsed, MIN_Y_RANGE_SCALE)
+
 	def sync_boxes() -> None:
 		current_window_a = state["window_a"]
 		current_window_b = state["window_b"]
+		current_y_scale_a = state["y_scale_a"]
+		current_y_scale_b = state["y_scale_b"]
 		assert isinstance(current_window_a, tuple)
 		assert isinstance(current_window_b, tuple)
+		assert isinstance(current_y_scale_a, float)
+		assert isinstance(current_y_scale_b, float)
 		box_a_min.set_val(f"{current_window_a[0]:g}")
 		box_a_max.set_val(f"{current_window_a[1]:g}")
 		box_b_min.set_val(f"{current_window_b[0]:g}")
 		box_b_max.set_val(f"{current_window_b[1]:g}")
+		y_scale_a_box.set_val(f"{current_y_scale_a:g}")
+		y_scale_b_box.set_val(f"{current_y_scale_b:g}")
 
 	def synced_window_a_from_window_b(current_window_b: tuple[float, float]) -> tuple[float, float]:
 		pairs_in_b = [
@@ -539,42 +780,168 @@ def plot_pair(core_a: str, core_b: str) -> None:
 				pass
 		state["connectors"] = []
 
+		for extra_key in ("extra_axes_a", "extra_axes_b"):
+			extra_axes = state[extra_key]
+			assert isinstance(extra_axes, list)
+			for extra_ax in extra_axes:
+				try:
+					extra_ax.remove()
+				except ValueError:
+					pass
+			state[extra_key] = []
+
 		current_window_a = state["window_a"]
 		current_window_b = state["window_b"]
+		current_y_scale_a = state["y_scale_a"]
+		current_y_scale_b = state["y_scale_b"]
 		assert isinstance(current_window_a, tuple)
 		assert isinstance(current_window_b, tuple)
+		assert isinstance(current_y_scale_a, float)
+		assert isinstance(current_y_scale_b, float)
 
-		view_a = clip_depth_window(series_a.data, current_window_a[0], current_window_a[1])
-		view_b = clip_depth_window(series_b.data, current_window_b[0], current_window_b[1])
 		visible = pairs_in_bottom_window(all_pairs, current_window_b)
 		draw_tiepoints = len(visible) <= MAX_DRAWN_TIEPOINTS
 
 		ax_a.clear()
 		ax_b.clear()
 
-		if not view_a.empty:
-			ax_a.plot(view_a["depth"], view_a["value"], color="tab:blue", lw=1.2)
-			y_line_a, y_text_a = marker_y_positions(view_a["value"])
+		cmap_a = plt.get_cmap("tab10")
+		cmap_b = plt.get_cmap("Dark2")
+		plotted_count_a = 0
+		plotted_count_b = 0
+		fallback_values_a: pd.Series | None = None
+		fallback_values_b: pd.Series | None = None
+		visible_payload_a: list[tuple[int, Path, pd.Series, str, pd.DataFrame]] = []
+		visible_payload_b: list[tuple[int, Path, pd.Series, str, pd.DataFrame]] = []
+
+		for idx, (path, data, value_label) in enumerate(selected_payload_a):
+			view = clip_depth_window(data, current_window_a[0], current_window_a[1])
+			if view.empty:
+				continue
+			visible_payload_a.append((idx, path, view["value"], value_label, view))
+
+		for idx, (path, data, value_label) in enumerate(selected_payload_b):
+			view = clip_depth_window(data, current_window_b[0], current_window_b[1])
+			if view.empty:
+				continue
+			visible_payload_b.append((idx, path, view["value"], value_label, view))
+
+		for rank, (idx, path, values, value_label, view) in enumerate(visible_payload_a):
+			if fallback_values_a is None:
+				fallback_values_a = values
+
+			color = cmap_a(idx % cmap_a.N)
+			if idx == 0:
+				target_ax = ax_a
+				y_label = f"{series_a.canonical_name} {value_label}"
+			else:
+				target_ax = ax_a.twinx()
+				target_ax.spines["right"].set_position(("axes", 1.0 + 0.12 * (idx - 1)))
+				target_ax.patch.set_visible(False)
+				extra_axes_a = state["extra_axes_a"]
+				assert isinstance(extra_axes_a, list)
+				extra_axes_a.append(target_ax)
+				y_label = f"{value_label} ({path.stem})"
+
+			target_ax.plot(
+				view["depth"],
+				values,
+				color=color,
+				lw=1.2,
+			)
+			set_offset_axis_limits(target_ax, values, rank, len(visible_payload_a), current_y_scale_a)
+			target_ax.set_ylabel(y_label, color=color, fontsize=8)
+			target_ax.tick_params(axis="y", colors=color, labelsize=8)
+			target_ax.grid(False)
+			plotted_count_a += 1
+
+		for rank, (idx, path, values, value_label, view) in enumerate(visible_payload_b):
+			if fallback_values_b is None:
+				fallback_values_b = values
+
+			color = cmap_b(idx % cmap_b.N)
+			if idx == 0:
+				target_ax = ax_b
+				y_label = f"{series_b.canonical_name} {value_label}"
+			else:
+				target_ax = ax_b.twinx()
+				target_ax.spines["right"].set_position(("axes", 1.0 + 0.12 * (idx - 1)))
+				target_ax.patch.set_visible(False)
+				extra_axes_b = state["extra_axes_b"]
+				assert isinstance(extra_axes_b, list)
+				extra_axes_b.append(target_ax)
+				y_label = f"{value_label} ({path.stem})"
+
+			target_ax.plot(
+				view["depth"],
+				values,
+				color=color,
+				lw=1.2,
+			)
+			set_offset_axis_limits(target_ax, values, rank, len(visible_payload_b), current_y_scale_b)
+			target_ax.set_ylabel(y_label, color=color, fontsize=8)
+			target_ax.tick_params(axis="y", colors=color, labelsize=8)
+			target_ax.grid(False)
+			plotted_count_b += 1
+
+		if plotted_count_a > 0:
+			if not ax_a.lines and fallback_values_a is not None:
+				y_min = float(fallback_values_a.min())
+				y_max = float(fallback_values_a.max())
+				if y_min == y_max:
+					y_min -= 0.5
+					y_max += 0.5
+				ax_a.set_ylim(y_min, y_max)
+			y_min_a, y_max_a = ax_a.get_ylim()
+			y_span_a = y_max_a - y_min_a
+			if y_span_a == 0:
+				y_span_a = 1.0
+			y_line_a = y_min_a + 0.92 * y_span_a
+			y_text_a = y_min_a + 0.965 * y_span_a
 		else:
 			y_line_a, y_text_a = 0.0, 0.0
 			ax_a.text(0.5, 0.5, "No data in window", transform=ax_a.transAxes, ha="center", va="center")
 
-		if not view_b.empty:
-			ax_b.plot(view_b["depth"], view_b["value"], color="tab:orange", lw=1.2)
-			y_line_b, y_text_b = marker_y_positions(view_b["value"])
+		if plotted_count_b > 0:
+			if not ax_b.lines and fallback_values_b is not None:
+				y_min = float(fallback_values_b.min())
+				y_max = float(fallback_values_b.max())
+				if y_min == y_max:
+					y_min -= 0.5
+					y_max += 0.5
+				ax_b.set_ylim(y_min, y_max)
+			y_min_b, y_max_b = ax_b.get_ylim()
+			y_span_b = y_max_b - y_min_b
+			if y_span_b == 0:
+				y_span_b = 1.0
+			y_line_b = y_min_b + 0.92 * y_span_b
+			y_text_b = y_min_b + 0.965 * y_span_b
 		else:
 			y_line_b, y_text_b = 0.0, 0.0
 			ax_b.text(0.5, 0.5, "No data in window", transform=ax_b.transAxes, ha="center", va="center")
 
 		ax_a.set_xlim(*current_window_a)
 		ax_b.set_xlim(*current_window_b)
-		ax_a.set_ylabel(f"{series_a.canonical_name} {series_a.value_label}")
-		ax_b.set_ylabel(f"{series_b.canonical_name} {series_b.value_label}")
 		ax_b.set_xlabel("Depth")
-		ax_a.set_title(series_a.file_path.name)
-		ax_b.set_title(series_b.file_path.name)
+		ax_a.set_title(summarize_selected_file_names([path.name for path, _, _ in selected_payload_a]))
+		ax_b.set_title(summarize_selected_file_names([path.name for path, _, _ in selected_payload_b]))
 		ax_a.grid(alpha=0.25)
 		ax_b.grid(alpha=0.25)
+
+		file_handles_a = [
+			Line2D([0], [0], color=cmap_a(idx % cmap_a.N), lw=1.5, label=path.name)
+			for idx, (path, _, _) in enumerate(selected_payload_a)
+		]
+		if file_handles_a:
+			data_legend_a = ax_a.legend(file_handles_a, [handle.get_label() for handle in file_handles_a], loc="upper right", title="Files", fontsize=7, title_fontsize=8)
+			ax_a.add_artist(data_legend_a)
+
+		file_handles_b = [
+			Line2D([0], [0], color=cmap_b(idx % cmap_b.N), lw=1.5, label=path.name)
+			for idx, (path, _, _) in enumerate(selected_payload_b)
+		]
+		if file_handles_b:
+			ax_b.legend(file_handles_b, [handle.get_label() for handle in file_handles_b], loc="upper right", title="Files", fontsize=7, title_fontsize=8)
 
 		seg_half_width_a = max((current_window_a[1] - current_window_a[0]) * 0.008, 0.01)
 		seg_half_width_b = max((current_window_b[1] - current_window_b[0]) * 0.008, 0.01)
@@ -679,28 +1046,32 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 		fig.canvas.draw_idle()
 
-	def update_core_series(core_side: str, file_name: str) -> None:
+	def update_selected_files(core_side: str, selected_names: list[str]) -> None:
+		nonlocal selected_payload_a, selected_payload_b
+
 		if core_side == "a":
-			selected_path = file_map_a[file_name]
+			payload = load_selected_payload(file_map_a, selected_names)
 			target_series = series_a
 			window_key = "window_a"
 			bounds_key = "data_bounds_a"
 			min_box = box_a_min
 			max_box = box_a_max
+			selected_payload_a = payload
 		else:
-			selected_path = file_map_b[file_name]
+			payload = load_selected_payload(file_map_b, selected_names)
 			target_series = series_b
 			window_key = "window_b"
 			bounds_key = "data_bounds_b"
 			min_box = box_b_min
 			max_box = box_b_max
+			selected_payload_b = payload
 
-		new_data = load_core_data(selected_path)
-		target_series.file_path = selected_path
-		target_series.data = new_data
-		target_series.value_label = str(new_data.attrs.get("value_label", "value"))
+		# Keep a representative series for titles/window labels.
+		target_series.file_path = payload[0][0]
+		target_series.data = payload[0][1]
+		target_series.value_label = payload[0][2]
 
-		new_bounds = (float(new_data["depth"].min()), float(new_data["depth"].max()))
+		new_bounds = depth_bounds_from_payload(payload)
 		current_window = state[window_key]
 		assert isinstance(current_window, tuple)
 		state[bounds_key] = new_bounds
@@ -713,10 +1084,10 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		sync_boxes()
 		redraw()
 
-	dropdowns: list[DropdownSelector] = []
-	selector_by_name: dict[str, DropdownSelector] = {}
+	dropdowns: list[DropdownSelector | MultiSelectDropdownSelector] = []
+	selector_by_name: dict[str, DropdownSelector | MultiSelectDropdownSelector] = {}
 
-	def toggle_dropdown(active_dropdown: DropdownSelector) -> None:
+	def toggle_dropdown(active_dropdown: DropdownSelector | MultiSelectDropdownSelector) -> None:
 		for dropdown in dropdowns:
 			if dropdown is active_dropdown:
 				dropdown.toggle_menu()
@@ -727,7 +1098,7 @@ def plot_pair(core_a: str, core_b: str) -> None:
 	def update_core_pair(new_core_a: str, new_core_b: str) -> bool:
 		nonlocal series_a, series_b, all_pairs, pair_prefix
 		nonlocal reference_colors, available_files_a, available_files_b, file_map_a, file_map_b
-		nonlocal current_core_a, current_core_b
+		nonlocal current_core_a, current_core_b, selected_payload_a, selected_payload_b
 
 		try:
 			new_series_a, new_series_b, new_pairs, new_window_a, new_window_b, new_pair_prefix = build_view(new_core_a, new_core_b)
@@ -750,26 +1121,33 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		current_core_a = new_core_a
 		current_core_b = new_core_b
 
-		new_bounds_a = (float(series_a.data["depth"].min()), float(series_a.data["depth"].max()))
-		new_bounds_b = (float(series_b.data["depth"].min()), float(series_b.data["depth"].max()))
+		selected_payload_a = load_selected_payload(file_map_a, [series_a.file_path.name])
+		selected_payload_b = load_selected_payload(file_map_b, [series_b.file_path.name])
+
+		new_bounds_a = depth_bounds_from_payload(selected_payload_a)
+		new_bounds_b = depth_bounds_from_payload(selected_payload_b)
 		state["data_bounds_a"] = new_bounds_a
 		state["data_bounds_b"] = new_bounds_b
-		state["window_a"] = new_window_a
-		state["window_b"] = new_window_b
-		state["base_window_a"] = new_window_a
-		state["base_window_b"] = new_window_b
+		state["window_a"] = clamp_window(new_window_a, new_bounds_a)
+		state["window_b"] = clamp_window(new_window_b, new_bounds_b)
+		state["base_window_a"] = clamp_window(new_window_a, new_bounds_a)
+		state["base_window_b"] = clamp_window(new_window_b, new_bounds_b)
 
 		box_a_min.label.set_text(f"{series_a.canonical_name} min")
 		box_a_max.label.set_text(f"{series_a.canonical_name} max")
 		box_b_min.label.set_text(f"{series_b.canonical_name} min")
 		box_b_max.label.set_text(f"{series_b.canonical_name} max")
+		y_scale_a_box.label.set_text(f"{series_a.canonical_name} Y-scale")
+		y_scale_b_box.label.set_text(f"{series_b.canonical_name} Y-scale")
 
 		file_selector_a = selector_by_name["file_a"]
 		file_selector_b = selector_by_name["file_b"]
-		file_selector_a.set_title(f"{series_a.canonical_name} file")
-		file_selector_b.set_title(f"{series_b.canonical_name} file")
-		file_selector_a.set_options([path.name for path in available_files_a], series_a.file_path.name)
-		file_selector_b.set_options([path.name for path in available_files_b], series_b.file_path.name)
+		assert isinstance(file_selector_a, MultiSelectDropdownSelector)
+		assert isinstance(file_selector_b, MultiSelectDropdownSelector)
+		file_selector_a.set_title(f"{series_a.canonical_name} files")
+		file_selector_b.set_title(f"{series_b.canonical_name} files")
+		file_selector_a.set_options([path.name for path in available_files_a], [series_a.file_path.name])
+		file_selector_b.set_options([path.name for path in available_files_b], [series_b.file_path.name])
 
 		sync_boxes()
 		redraw()
@@ -787,10 +1165,14 @@ def plot_pair(core_a: str, core_b: str) -> None:
 			next_core_b = selected_core
 
 		if not update_core_pair(next_core_a, next_core_b):
+			core_selector_a = selector_by_name["core_a"]
+			core_selector_b = selector_by_name["core_b"]
+			assert isinstance(core_selector_a, DropdownSelector)
+			assert isinstance(core_selector_b, DropdownSelector)
 			if core_side == "a":
-				selector_by_name["core_a"].set_current(old_core_a)
+				core_selector_a.set_current(old_core_a)
 			else:
-				selector_by_name["core_b"].set_current(old_core_b)
+				core_selector_b.set_current(old_core_b)
 			fig.canvas.draw_idle()
 
 	initial_file_a = series_a.file_path.name
@@ -821,24 +1203,24 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		on_toggle=toggle_dropdown,
 	)
 
-	dropdown_a = DropdownSelector(
+	dropdown_a = MultiSelectDropdownSelector(
 		fig=fig,
 		button_rect=[0.82, 0.38, 0.16, 0.04],
 		menu_rect=[0.82, 0.42, 0.16, 0.16],
-		title=f"{series_a.canonical_name} file",
+		title=f"{series_a.canonical_name} files",
 		options=[path.name for path in available_files_a],
-		initial=initial_file_a,
-		on_select=lambda selected: update_core_series("a", selected),
+		initial_selected=[initial_file_a],
+		on_select=lambda selected: update_selected_files("a", selected),
 		on_toggle=toggle_dropdown,
 	)
-	dropdown_b = DropdownSelector(
+	dropdown_b = MultiSelectDropdownSelector(
 		fig=fig,
 		button_rect=[0.82, 0.18, 0.16, 0.04],
 		menu_rect=[0.82, 0.22, 0.16, 0.16],
-		title=f"{series_b.canonical_name} file",
+		title=f"{series_b.canonical_name} files",
 		options=[path.name for path in available_files_b],
-		initial=initial_file_b,
-		on_select=lambda selected: update_core_series("b", selected),
+		initial_selected=[initial_file_b],
+		on_select=lambda selected: update_selected_files("b", selected),
 		on_toggle=toggle_dropdown,
 	)
 	dropdowns.extend([dropdown_core_a, dropdown_core_b, dropdown_a, dropdown_b])
@@ -855,6 +1237,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 			assert isinstance(bounds_b, tuple)
 			new_window_a = parse_window(box_a_min, box_a_max, bounds_a, series_a.canonical_name)
 			new_window_b = parse_window(box_b_min, box_b_max, bounds_b, series_b.canonical_name)
+			new_y_scale_a = parse_scale(y_scale_a_box, series_a.canonical_name)
+			new_y_scale_b = parse_scale(y_scale_b_box, series_b.canonical_name)
 		except ValueError as exc:
 			fig.suptitle(str(exc), fontsize=12, color="crimson")
 			fig.canvas.draw_idle()
@@ -862,6 +1246,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 
 		state["window_a"] = new_window_a
 		state["window_b"] = new_window_b
+		state["y_scale_a"] = new_y_scale_a
+		state["y_scale_b"] = new_y_scale_b
 		sync_boxes()
 		redraw()
 
@@ -890,6 +1276,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 		assert isinstance(base_window_b, tuple)
 		state["window_a"] = clamp_window(base_window_a, bounds_a)
 		state["window_b"] = clamp_window(base_window_b, bounds_b)
+		state["y_scale_a"] = DEFAULT_Y_RANGE_SCALE
+		state["y_scale_b"] = DEFAULT_Y_RANGE_SCALE
 		sync_boxes()
 		redraw()
 
@@ -897,6 +1285,8 @@ def plot_pair(core_a: str, core_b: str) -> None:
 	box_a_max.on_submit(apply_windows)
 	box_b_min.on_submit(apply_windows)
 	box_b_max.on_submit(apply_windows)
+	y_scale_a_box.on_submit(apply_windows)
+	y_scale_b_box.on_submit(apply_windows)
 	apply_button.on_clicked(apply_windows)
 	sync_button.on_clicked(on_sync)
 	reset_button.on_clicked(on_reset)
@@ -904,12 +1294,14 @@ def plot_pair(core_a: str, core_b: str) -> None:
 	sync_boxes()
 	redraw()
 
-	print(f"Core A file: {series_a.file_path}")
-	print(f"Core B file: {series_b.file_path}")
+	print(f"Core A files: {', '.join(path.name for path, _, _ in selected_payload_a)}")
+	print(f"Core B files: {', '.join(path.name for path, _, _ in selected_payload_b)}")
 	print(f"Tiepoint table: {BIG_TABLE_PATH}")
 	print(f"Tiepoint pair prefix: {pair_prefix}")
 	print(f"Core A window: [{window_a[0]:g}, {window_a[1]:g}]")
 	print(f"Core B window: [{window_b[0]:g}, {window_b[1]:g}]")
+	print(f"Core A Y-scale: {state['y_scale_a']}")
+	print(f"Core B Y-scale: {state['y_scale_b']}")
 	print(f"Tiepoints loaded: {len(all_pairs)}")
 
 	plt.show()

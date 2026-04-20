@@ -5,7 +5,7 @@ import pandas as pd
 import os
 
 #get the vals to run
-os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/")
+os.chdir('/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision Work/WD LC')
 start=0
 end=577.172
 step=6
@@ -26,12 +26,11 @@ for r in range(len(shallow_range)-1):
     wd_layer_count = pd.read_csv('Updated_WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)"])
     wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
 
-    old_wd_layer_count = pd.read_csv('WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
-    old_wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
-
+    old_wd_layer_count = pd.read_csv('Data Files/Original WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    old_wd_layer_count["Cal age [ka BP] (ice age)"] = old_wd_layer_count["Cal age [ka BP] (ice age)"]*1000
     #pull the ion data #######
 
-    early_ion_path='WD Layer Counting Files/Sigl2015_SOM4_Antarctica.xlsx'
+    early_ion_path='Data Files/Sigl2015_SOM4_Antarctica.xlsx'
 
     all_cols = cols_to_check = ["BC", "Na", "Sr", "nssS", "nssS_Na_ratio", "Br", "nh4", "nssCa"]
     early_read_ion = pd.read_excel(early_ion_path, header=None, sheet_name='1 - WDC06A_layer_count', skiprows=1, names=["Depth_m", "Depth_mweq",	"Decimal_Year_CE",	"BC",	"Na",	"Sr",	"nssS",	"nssS_Na_ratio", "Br",	"nh4",	"nssCa"])
@@ -39,12 +38,12 @@ for r in range(len(shallow_range)-1):
     for col in all_cols: #remove data > -3
         early_read_ion[col]=early_read_ion[col].mask(early_read_ion[col] < -3)
 
-    early_dep_path = '/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WD Layer Counting Files/DRI_0_577m_032217.txt'
+    early_dep_path = 'Data Files/DRI Ions.txt'
     early_read_dep = pd.read_csv(early_dep_path, delimiter="\t")
     early_read_dep['Cond(uS)']=early_read_dep['Cond(uS)'].mask(early_read_dep['Cond(uS)'] < 0)
 
     #pull the volcanic layer data
-    volcanic_path='/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WDC_GICC21_Compare.tab'
+    volcanic_path='Data Files/WDC_GICC21_Compare.tab'
     read_volcanic = pd.read_csv(volcanic_path, delimiter="\t", comment="#") #take the vals
     volcanic_wd_meters = read_volcanic["WDC(m)"]
 
@@ -177,5 +176,5 @@ for r in range(len(shallow_range)-1):
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Shallow Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
-    plt.savefig(f"Code for creating new LC/Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Modified Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
     plt.close()

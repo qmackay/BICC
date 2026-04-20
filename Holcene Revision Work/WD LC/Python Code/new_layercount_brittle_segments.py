@@ -7,7 +7,7 @@ import os
 ### set params
 
 #get the vals to run
-os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/")
+os.chdir("/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision Work/WD LC")
 start=577.172
 end=853.172
 step=6
@@ -28,15 +28,15 @@ for r in range(len(brittle_range)-1):
     wd_layer_count = pd.read_csv('Updated_WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)"])
     wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
 
-    old_wd_layer_count = pd.read_csv('WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
+    old_wd_layer_count = pd.read_csv('Data Files/Original WD2014 Layer Count.tab', comment="#", delimiter="\t", names=["Depth ice/snow [m]", "Cal age [ka BP] (ice age)", "Cal age std e [±] (ice age uncertainty due to an...)", "Cal age std e [±] (ice age uncertainty due to CH...)", "Gas age [ka BP] (gas age)", "Age e [±] (gas age uncertainty (2 sigma))",	"Age diff [ka] (gas age-ice age difference (d...)",	"Age diff e [±] (delta age uncertainty (2 sigma))"])
     old_wd_layer_count["Cal age [ka BP] (ice age)"] = wd_layer_count["Cal age [ka BP] (ice age)"]*1000
 
     #pull the DEP data files for the brittle ice #######
 
     dep_brittle_tab=["0550RA.d50", "0550RB.d50"]
-    dep_brittle_tab_paths = [f'WD Layer Counting Files/DEP files brittle ice/{file}' for file in dep_brittle_tab]
+    dep_brittle_tab_paths = [f'DEP files brittle ice/{file}' for file in dep_brittle_tab]
     dep_brittle_comma=["0600S.d50", "0650S.d50", "0700S.d50", "0750S.d50", "0800S.d50", "0850S.d50", "0900S.d50", "0950S.d50", "1000S.d50", "1050S.d50", "1100S.d50", "1150S.d50", "1200S.d50", "1250S.d50", "1300S.d50"]
-    dep_brittle_comma_paths = [f'WD Layer Counting Files/DEP files brittle ice/{file}' for file in dep_brittle_comma]
+    dep_brittle_comma_paths = [f'DEP files brittle ice/{file}' for file in dep_brittle_comma]
 
     read_dep = []
 
@@ -62,12 +62,12 @@ for r in range(len(brittle_range)-1):
 
     #pull the ion data #######
 
-    ion_path='WD Layer Counting Files/WDC06A 577-1300 m Chemistry.xlsx'
+    ion_path='Data Files/WDC06A 577-1300 m Chemistry.xlsx'
 
     read_ion = pd.read_excel(ion_path, header=None, skiprows=5, names=['Depth(m)', "Cl(ng/g)", "NO3(ng/g)", "SO4(ng/g)", "Na(ng/g)", "K(ng/g)", "Mg(ng/g)", "Ca(ng/g)"])
 
     #take compare data to plot volcanic links
-    volcanic_path='/Users/quinnmackay/Documents/GitHub/BICC/Holcene Revision/WDC_GICC21_Compare.tab'
+    volcanic_path='Data Files/WDC_GICC21_Compare.tab'
     read_volcanic = pd.read_csv(volcanic_path, delimiter="\t", comment="#") #take the vals
     volcanic_wd_meters = read_volcanic["WDC(m)"]
 
@@ -191,6 +191,6 @@ for r in range(len(brittle_range)-1):
 
     plt.subplots_adjust(hspace=0)
     plt.suptitle(rf"| Brittle Ice Layer Counting | Depth: $\bf{{{xlow}}}$ to $\bf{{{xhigh}}}$ | Age: $\bf{{{min(age_in_bounds)}}}$ to $\bf{{{max(age_in_bounds)}}}$ |", fontsize=16, y=0.91)
-    plt.savefig(f"Code for creating new LC/Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Modified Figs/WD_LC_{xlow}_{xhigh}.png", dpi=300, bbox_inches='tight')
     plt.close()
 

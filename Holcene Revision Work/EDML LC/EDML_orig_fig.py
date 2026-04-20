@@ -11,8 +11,8 @@ script_dir = Path(__file__).parent
 os.chdir(script_dir)
 
 #get the vals to run
-start=113
-end=280.289
+start=300
+end=350
 step=2
 edml_range = list(np.arange(start, end, step))
 if edml_range[-1] < end:
