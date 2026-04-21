@@ -1,0 +1,1 @@
+Note: The layer counts were initialized from the ORIGINAL layer counts. Written Apr 20, 2026
